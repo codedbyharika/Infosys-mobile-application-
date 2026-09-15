@@ -1,0 +1,84 @@
+{
+  "status": "COMPLETED",
+  "raw_records": 103205,
+  "clean_records": 103205,
+  "unique_stations": 10,
+  "stations_sample": [
+    "BopadiSquare_65",
+    "Chitale Bandhu Corner_41",
+    "Dr Baba Saheb Ambedkar Sethu Junction_60",
+    "Goodluck Square_Cafe_23",
+    "Hadapsar_Gadital_01",
+    "Karve Statue Square_5",
+    "Lullanagar_Square_14",
+    "PMPML_Bus_Depot_Deccan_15",
+    "Pune Railway Station_28",
+    "Rajashri_Shahu_Bus_stand_19"
+  ],
+  "feature_columns": [
+    "aqi",
+    "pm25",
+    "pm10",
+    "no2",
+    "o3",
+    "co",
+    "so2",
+    "temp",
+    "humidity",
+    "traffic_score"
+  ],
+  "statistics": {
+    "aqi": {
+      "min": 15.0,
+      "mean": 82.1,
+      "max": 229.6
+    },
+    "pm25": {
+      "min": 1.0,
+      "mean": 13.8,
+      "max": 37.5
+    },
+    "pm10": {
+      "min": 2.0,
+      "mean": 17.8,
+      "max": 48.5
+    },
+    "no2": {
+      "min": 0.5,
+      "mean": 67.6,
+      "max": 315.5
+    },
+    "o3": {
+      "min": 0.5,
+      "mean": 11.0,
+      "max": 335.0
+    },
+    "co": {
+      "min": 13.5,
+      "mean": 71.5,
+      "max": 144.5
+    },
+    "so2": {
+      "min": 0.5,
+      "mean": 5.0,
+      "max": 165.0
+    },
+    "temp": {
+      "min": 22.5,
+      "mean": 29.3,
+      "max": 44.0
+    },
+    "humidity": {
+      "min": 10.2,
+      "mean": 62.7,
+      "max": 97.4
+    },
+    "traffic_score": {
+      "min": 10.0,
+      "mean": 49.5,
+      "max": 95.0
+    }
+  },
+  "output_csv": "pune_aqi_ml_clean.csv",
+  "duration_seconds": 23.28
+}
