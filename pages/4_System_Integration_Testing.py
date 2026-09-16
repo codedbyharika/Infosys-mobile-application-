@@ -178,7 +178,7 @@ with t_col:
 with runner_col:
     st.subheader("Test Runner")
     st.markdown(
-        f"""<div style="background:#FFFFFF; border:1px solid #334155; border-radius:6px; padding:14px;">
+        """<div style="background:#FFFFFF; border:1px solid #334155; border-radius:6px; padding:14px;">
             <div style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px;">
                 Simulated Test Automation Engine
             </div>

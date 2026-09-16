@@ -6,9 +6,9 @@ and Route Pollution Exposure Estimation.
 import os
 import sys
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add project root to sys.path

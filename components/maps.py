@@ -207,12 +207,16 @@ def render_pollution_map(
 
 def render_route_map(route_analysis: dict, *args, **kwargs):
     """
-    Renders route map on standard OSM tile background.
-    Finds the optimal route with lowest cumulative exposure score and renders only that route for the user.
+    Renders route map on standard OSM tile background displaying 3 routes for the selected
+    source to destination:
+    - Route 3 / Recommended Route in Green (#16A34A)
+    - Route 1 / Direct Arterial Route in Red (#DC2626)
+    - Route 2 / Alternative Corridor in Blue (#2563EB)
+    Along with origin/destination pins, localized waypoints, and avoided pollution hotspots.
     """
-    only_best_route = kwargs.get("only_best_route", True) if kwargs else (args[0] if args else True)
     route_a = route_analysis.get("route_a", {})
     route_b = route_analysis.get("route_b", {})
+    route_c = route_analysis.get("route_c") or route_analysis.get("recommended_route", {})
     hotspots = route_analysis.get("hotspots", [])
     if not hotspots and "hotspots" in route_a:
         hotspots = route_a.get("hotspots", [])
@@ -224,38 +228,35 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
 
     raw_a = route_a.get("waypoints", [])
     raw_b = route_b.get("waypoints", [])
-    if not raw_a and not raw_b:
+    raw_c = route_c.get("waypoints", []) if route_c else []
+
+    if not raw_a and not raw_b and not raw_c:
         st.warning("No waypoints available to render.")
         return
 
     coords_a = [_extract_coord(pt) for pt in raw_a] if raw_a else []
     coords_b = [_extract_coord(pt) for pt in raw_b] if raw_b else []
+    coords_c = [_extract_coord(pt) for pt in raw_c] if raw_c else []
 
-    # Identify the best route by lowest exposure score; fallback to lowest avg AQI
-    score_a = route_a.get("exposure_score", 999.0)
-    score_b = route_b.get("exposure_score", 999.0)
+    # If route_c is missing, designate the route with lower exposure score as recommended
+    if not coords_c:
+        score_a = route_a.get("exposure_score", 999.0)
+        score_b = route_b.get("exposure_score", 999.0)
+        if score_b <= score_a and coords_b:
+            route_c = route_b
+            coords_c = coords_b
+        elif coords_a:
+            route_c = route_a
+            coords_c = coords_a
 
-    if coords_b and (score_b < score_a or (score_b == score_a and route_b.get("avg_aqi", 999) <= route_a.get("avg_aqi", 999))):
-        best_route = route_b
-        best_coords = coords_b
-        best_tag = "RECOMMENDED BEST ROUTE"
-        is_clean_corridor = True
-    elif coords_a:
-        best_route = route_a
-        best_coords = coords_a
-        best_tag = "BEST AVAILABLE ROUTE"
-        is_clean_corridor = False
-    elif coords_b:
-        best_route = route_b
-        best_coords = coords_b
-        best_tag = "RECOMMENDED BEST ROUTE"
-        is_clean_corridor = True
-    else:
+    # Determine reference center and start/end coordinates
+    ref_coords = coords_c or coords_a or coords_b
+    if not ref_coords:
         st.warning("No valid route coordinates available to render.")
         return
 
-    start_pt = best_coords[0]
-    end_pt   = best_coords[-1]
+    start_pt = ref_coords[0]
+    end_pt   = ref_coords[-1]
     mid_lat  = (start_pt[0] + end_pt[0]) / 2.0
     mid_lon  = (start_pt[1] + end_pt[1]) / 2.0
 
@@ -268,66 +269,124 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
     src_name = route_analysis.get("origin", route_analysis.get("source", "Origin"))
     dst_name = route_analysis.get("destination", "Destination")
 
-    # Origin marker (Green)
+    # 1. Origin marker (Green)
     folium.Marker(
         location=start_pt,
         popup=folium.Popup(
-            f"""<div style="font-family:Arial,sans-serif; font-size:12px; min-width:150px;">
-                <b style="color:#16A34A;">🟢 ORIGIN</b><br>
+            f"""<div style="font-family:Arial,sans-serif; font-size:12px; min-width:160px;">
+                <b style="color:#16A34A; font-size:13px;">🟢 ORIGIN</b><br>
                 <b>{src_name}</b><br>
                 Lat: {start_pt[0]:.4f} N &nbsp; Lon: {start_pt[1]:.4f} E
             </div>""",
-            max_width=220
+            max_width=240
         ),
         tooltip=f"Origin: {src_name}",
         icon=folium.Icon(color="green", icon="play", prefix="glyphicon")
     ).add_to(m)
 
-    # Destination marker (Red)
+    # 2. Destination marker (Red)
     folium.Marker(
         location=end_pt,
         popup=folium.Popup(
-            f"""<div style="font-family:Arial,sans-serif; font-size:12px; min-width:150px;">
-                <b style="color:#DC2626;">🔴 DESTINATION</b><br>
+            f"""<div style="font-family:Arial,sans-serif; font-size:12px; min-width:160px;">
+                <b style="color:#DC2626; font-size:13px;">🔴 DESTINATION</b><br>
                 <b>{dst_name}</b><br>
                 Lat: {end_pt[0]:.4f} N &nbsp; Lon: {end_pt[1]:.4f} E
             </div>""",
-            max_width=220
+            max_width=240
         ),
         tooltip=f"Destination: {dst_name}",
         icon=folium.Icon(color="red", icon="flag", prefix="glyphicon")
     ).add_to(m)
 
-    if only_best_route:
-        # Render ONLY the best route
-        route_color = "#16A34A" if is_clean_corridor else best_route.get("risk_color", "#2563EB")
-        route_name = best_route.get("name", "Best Route")
-        dist_km = best_route.get("distance_km", "")
-        dur_mins = best_route.get("duration_mins", "")
-        avg_aqi = best_route.get("avg_aqi", "")
-        exposure_score = best_route.get("exposure_score", "")
-
-        tooltip_text = (
-            f"★ {best_tag}: {route_name} | "
-            f"Distance: {dist_km} km | "
-            f"Duration: {dur_mins} min | "
-            f"Avg AQI: {avg_aqi} | "
-            f"Exposure Score: {exposure_score}/100"
-        )
-
+    # 3. Route 1: Direct Arterial Corridor (RED)
+    if coords_a:
+        dist_a = route_a.get('distance_km', '')
+        dur_a = route_a.get('duration_mins', '')
+        avg_aqi_a = route_a.get('avg_aqi', '')
+        exp_a = route_a.get('exposure_score', '')
+        popup_a_html = f"""
+        <div style="font-family:Arial,sans-serif; font-size:12px; min-width:190px; padding:4px;">
+            <b style="color:#DC2626; font-size:13px;">🔴 Route 1: Arterial Corridor</b><br>
+            <div style="margin:6px 0; padding:4px 8px; background:#FEF2F2; color:#DC2626; border-radius:4px; font-weight:bold; border:1px solid #FECACA;">
+                High Exposure Risk (Score: {exp_a}/100)
+            </div>
+            <b>Distance:</b> {dist_a} km<br>
+            <b>Est. Time:</b> {dur_a} min<br>
+            <b>Average AQI:</b> {avg_aqi_a}<br>
+            <span style="color:#991B1B; font-size:11px;">Passes congested urban roads</span>
+        </div>
+        """
         folium.PolyLine(
-            locations=best_coords,
-            color=route_color,
-            weight=7,
-            opacity=0.95,
-            tooltip=tooltip_text
+            locations=coords_a,
+            color="#DC2626",
+            weight=5,
+            opacity=0.85,
+            dash_array="7 6",
+            tooltip=f"🔴 Route 1 (Arterial - Red): {dist_a} km | {dur_a} min | Avg AQI: {avg_aqi_a} | Exposure: {exp_a}/100",
+            popup=folium.Popup(popup_a_html, max_width=250)
         ).add_to(m)
 
-        # Waypoint nodes along the best route
-        wp_details = best_route.get("waypoint_details", [])
+    # 4. Route 2: Alternative Corridor (BLUE)
+    if coords_b:
+        dist_b = route_b.get('distance_km', '')
+        dur_b = route_b.get('duration_mins', '')
+        avg_aqi_b = route_b.get('avg_aqi', '')
+        exp_b = route_b.get('exposure_score', '')
+        popup_b_html = f"""
+        <div style="font-family:Arial,sans-serif; font-size:12px; min-width:190px; padding:4px;">
+            <b style="color:#2563EB; font-size:13px;">🔵 Route 2: Alternative Corridor</b><br>
+            <div style="margin:6px 0; padding:4px 8px; background:#EFF6FF; color:#2563EB; border-radius:4px; font-weight:bold; border:1px solid #BFDBFE;">
+                Alternative Route (Score: {exp_b}/100)
+            </div>
+            <b>Distance:</b> {dist_b} km<br>
+            <b>Est. Time:</b> {dur_b} min<br>
+            <b>Average AQI:</b> {avg_aqi_b}<br>
+            <span style="color:#1D4ED8; font-size:11px;">Secondary transit route</span>
+        </div>
+        """
+        folium.PolyLine(
+            locations=coords_b,
+            color="#2563EB",
+            weight=5,
+            opacity=0.85,
+            dash_array="12 6",
+            tooltip=f"🔵 Route 2 (Alternative - Blue): {dist_b} km | {dur_b} min | Avg AQI: {avg_aqi_b} | Exposure: {exp_b}/100",
+            popup=folium.Popup(popup_b_html, max_width=250)
+        ).add_to(m)
+
+    # 5. Route 3: Clean-Air Corridor (GREEN - RECOMMENDED)
+    if coords_c:
+        dist_c = route_c.get('distance_km', '')
+        dur_c = route_c.get('duration_mins', '')
+        avg_aqi_c = route_c.get('avg_aqi', '')
+        exp_c = route_c.get('exposure_score', '')
+        popup_c_html = f"""
+        <div style="font-family:Arial,sans-serif; font-size:12px; min-width:200px; padding:4px;">
+            <b style="color:#16A34A; font-size:13px;">🟢 Route 3: Clean-Air Corridor</b><br>
+            <div style="margin:6px 0; padding:4px 8px; background:#F0FDF4; color:#16A34A; border-radius:4px; font-weight:bold; border:1px solid #BBF7D0;">
+                ★ RECOMMENDED (Score: {exp_c}/100)
+            </div>
+            <b>Distance:</b> {dist_c} km<br>
+            <b>Est. Time:</b> {dur_c} min<br>
+            <b>Average AQI:</b> {avg_aqi_c}<br>
+            <b style="color:#166534; font-size:11px;">Lowest cumulative pollution inhalation</b>
+        </div>
+        """
+        folium.PolyLine(
+            locations=coords_c,
+            color="#16A34A",
+            weight=7,
+            opacity=0.95,
+            tooltip=f"🟢 ★ RECOMMENDED (Green): {dist_c} km | {dur_c} min | Avg AQI: {avg_aqi_c} | Exposure: {exp_c}/100",
+            popup=folium.Popup(popup_c_html, max_width=260)
+        ).add_to(m)
+
+        # Waypoint nodes along the recommended route
+        wp_details = route_c.get("waypoint_details", [])
         if wp_details:
             for i, wp in enumerate(wp_details):
-                if i % 3 == 0 and 0 < i < len(wp_details) - 1:
+                if i % 2 == 1 and 0 < i < len(wp_details) - 1:
                     wp_lat = wp.get("lat")
                     wp_lon = wp.get("lon")
                     wp_aqi = wp.get("aqi", "N/A")
@@ -335,29 +394,13 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
                         folium.CircleMarker(
                             location=[wp_lat, wp_lon],
                             radius=5,
-                            color=route_color,
+                            color="#16A34A",
                             fill=True,
                             fill_color="#FFFFFF",
                             fill_opacity=0.95,
                             weight=2,
-                            tooltip=f"Waypoint {i+1}: AQI {wp_aqi}"
+                            tooltip=f"Green Route Waypoint {i+1}: AQI {wp_aqi}"
                         ).add_to(m)
-
-    else:
-        # Comparative view showing both routes
-        if coords_a:
-            folium.PolyLine(
-                locations=coords_a,
-                color="#EF4444", weight=6, opacity=0.90,
-                tooltip=f"Route A — {route_a.get('distance_km', '')} km | Avg AQI {route_a.get('avg_aqi', '')} (High Exposure)"
-            ).add_to(m)
-
-        if coords_b:
-            folium.PolyLine(
-                locations=coords_b,
-                color="#22C55E", weight=7, opacity=0.95, dash_array="8 5",
-                tooltip=f"Route B [RECOMMENDED] — {route_b.get('distance_km', '')} km | Avg AQI {route_b.get('avg_aqi', '')}"
-            ).add_to(m)
 
     # Avoided high-pollution hotspots overlay
     for spot in hotspots:
@@ -367,26 +410,46 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
         if s_lat is not None and s_lon is not None:
             folium.Circle(
                 location=[s_lat, s_lon],
-                radius=spot.get("radius", 600),
+                radius=spot.get("radius", 650),
                 color="#EF4444", fill=True, fill_color="#DC2626",
-                fill_opacity=0.25, weight=1,
-                popup=f"<b>Hotspot Avoided:</b><br>{spot_name}<br>Localized AQI: {spot.get('aqi', '')}",
+                fill_opacity=0.22, weight=1,
+                popup=f"<b>Avoided Hotspot:</b><br>{spot_name}<br>Localized AQI: {spot.get('aqi', '')}",
                 tooltip=f"Avoided Hotspot: {spot_name} — AQI {spot.get('aqi', '')}"
             ).add_to(m)
 
-    # Fit bounds dynamically to enclose the best route
-    m.fit_bounds(best_coords, padding=(35, 35))
+    # Fit bounds dynamically to enclose all 3 routes
+    all_coords = []
+    if coords_c:
+        all_coords.extend(coords_c)
+    if coords_a:
+        all_coords.extend(coords_a)
+    if coords_b:
+        all_coords.extend(coords_b)
 
+    if all_coords:
+        m.fit_bounds(all_coords, padding=(35, 35))
+
+    # Route summary badge bar above the interactive map
     st.markdown(
-        f"""<div style="background:#F0FDF4; border:1px solid #BBF7D0; border-left:4px solid #16A34A;
-                        padding:8px 14px; border-radius:5px; margin-bottom:10px; font-size:0.82rem; color:#166534;">
-            <b>Displaying Optimal Best Route:</b> {best_route.get('name', 'Recommended Route')} &nbsp;|&nbsp;
-            Exposure Score: <b>{best_route.get('exposure_score', '')} / 100</b> &nbsp;|&nbsp;
-            Avg AQI: <b>{best_route.get('avg_aqi', '')}</b> &nbsp;|&nbsp;
-            Distance: <b>{best_route.get('distance_km', '')} km</b> ({best_route.get('duration_mins', '')} mins)
+        f"""<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:10px; margin-bottom:12px;">
+            <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-left:4px solid #16A34A; padding:8px 12px; border-radius:6px; font-size:0.80rem;">
+                <b style="color:#166534;">🟢 RECOMMENDED (Green)</b><br>
+                <b>{route_c.get('name', 'Route 3')}</b><br>
+                Exposure: <b>{route_c.get('exposure_score', '')}/100</b> &nbsp;|&nbsp; Avg AQI: <b>{route_c.get('avg_aqi', '')}</b> &nbsp;|&nbsp; {route_c.get('distance_km', '')} km
+            </div>
+            <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-left:4px solid #2563EB; padding:8px 12px; border-radius:6px; font-size:0.80rem;">
+                <b style="color:#1D4ED8;">🔵 ALTERNATIVE (Blue)</b><br>
+                <b>{route_b.get('name', 'Route 2')}</b><br>
+                Exposure: <b>{route_b.get('exposure_score', '')}/100</b> &nbsp;|&nbsp; Avg AQI: <b>{route_b.get('avg_aqi', '')}</b> &nbsp;|&nbsp; {route_b.get('distance_km', '')} km
+            </div>
+            <div style="background:#FEF2F2; border:1px solid #FECACA; border-left:4px solid #DC2626; padding:8px 12px; border-radius:6px; font-size:0.80rem;">
+                <b style="color:#991B1B;">🔴 ARTERIAL (Red)</b><br>
+                <b>{route_a.get('name', 'Route 1')}</b><br>
+                Exposure: <b>{route_a.get('exposure_score', '')}/100</b> &nbsp;|&nbsp; Avg AQI: <b>{route_a.get('avg_aqi', '')}</b> &nbsp;|&nbsp; {route_a.get('distance_km', '')} km
+            </div>
         </div>""",
         unsafe_allow_html=True
     )
 
-    st_folium(m, use_container_width=True, height=440, returned_objects=[])
+    st_folium(m, use_container_width=True, height=460, returned_objects=[])
 

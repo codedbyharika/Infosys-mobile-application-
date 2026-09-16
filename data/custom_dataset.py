@@ -41,14 +41,13 @@ def load_pune_data() -> dict:
     cache_path = os.path.join(os.path.dirname(__file__), "pune_dataset_cache.pkl")
     file_path = os.path.join(os.path.dirname(__file__), "Pune_Dataset(processed).xlsx")
 
-    # Fast path: Load from pre-processed pickle if available and up-to-date
-    if os.path.exists(cache_path) and os.path.exists(file_path):
-        if os.path.getmtime(cache_path) >= os.path.getmtime(file_path):
-            try:
-                with open(cache_path, "rb") as f:
-                    return pickle.load(f)
-            except Exception:
-                pass
+    # Fast path: Load from pre-processed pickle if available
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, "rb") as f:
+                return pickle.load(f)
+        except Exception:
+            pass
 
     if not os.path.exists(file_path):
         return {}

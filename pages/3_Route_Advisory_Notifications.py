@@ -5,7 +5,7 @@ Module 3 — Route Advisory, Dashboard and Push Notifications — Dark Theme
 import streamlit as st
 from datetime import datetime, date
 from data.custom_dataset import load_pune_data
-from data.demo_data import get_demo_notifications, HEALTH_PROFILES
+from data.demo_data import get_demo_notifications
 from ml.route_exposure import RoutePollutionEstimator
 from components.metrics import render_demo_banner
 from components.maps import render_route_map
@@ -119,39 +119,40 @@ st.markdown("---")
 st.markdown("### 3.2  Route Exposure Analysis and Comparison")
 ra = route_data["route_a"]
 rb = route_data["route_b"]
-card_a, card_b = st.columns(2)
+rc = route_data.get("route_c", route_data.get("recommended_route", rb))
+card_a, card_b, card_c = st.columns(3)
 
 with card_a:
     st.markdown(
         f"""<div style="background:#FFFFFF; border:1px solid #7F1D1D; border-top:3px solid #EF4444;
-                        border-radius:10px; padding:18px 20px; min-height:230px;">
+                        border-radius:10px; padding:16px 18px; min-height:250px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <b style="font-size:0.98rem; color:#0F172A;">{ra['name']}</b>
-                <span style="background:rgba(239,68,68,0.15); border:1px solid #7F1D1D; color:#F87171;
-                      font-size:0.70rem; font-weight:700; padding:3px 10px; border-radius:3px;">
-                    {ra['risk_level']}
+                <b style="font-size:0.92rem; color:#0F172A;">{ra['name']}</b>
+                <span style="background:rgba(239,68,68,0.15); border:1px solid #7F1D1D; color:#DC2626;
+                      font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:3px;">
+                    🔴 {ra.get('tag', 'HIGH EXPOSURE')}
                 </span>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-                <div style="background:#F1F5F9; padding:9px; border-radius:5px; border:1px solid #334155;">
-                    <div style="font-size:0.70rem; color:#64748B;">Distance</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#0F172A;">{ra['distance_km']} km</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{ra['distance_km']} km</div>
                 </div>
-                <div style="background:#F1F5F9; padding:9px; border-radius:5px; border:1px solid #334155;">
-                    <div style="font-size:0.70rem; color:#64748B;">Est. Travel Time</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#0F172A;">{ra['duration_mins']} min</div>
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{ra['duration_mins']} min</div>
                 </div>
-                <div style="background:#1A0808; padding:9px; border-radius:5px; border:1px solid #7F1D1D;">
-                    <div style="font-size:0.70rem; color:#B91C1C;">Average AQI</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#F87171;">{ra['avg_aqi']}</div>
+                <div style="background:#FEF2F2; padding:8px; border-radius:5px; border:1px solid #FECACA;">
+                    <div style="font-size:0.68rem; color:#991B1B;">Average AQI</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#DC2626;">{ra['avg_aqi']}</div>
                 </div>
-                <div style="background:#1A0808; padding:9px; border-radius:5px; border:1px solid #7F1D1D;">
-                    <div style="font-size:0.70rem; color:#B91C1C;">Exposure Score</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#F87171;">{ra['exposure_score']} / 100</div>
+                <div style="background:#FEF2F2; padding:8px; border-radius:5px; border:1px solid #FECACA;">
+                    <div style="font-size:0.68rem; color:#991B1B;">Exposure Score</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#DC2626;">{ra['exposure_score']} / 100</div>
                 </div>
             </div>
-            <div style="font-size:0.78rem; color:#64748B;">
-                Passes through 2 severe congestion zones. Peak AQI: <b style="color:#F87171;">{ra.get('max_aqi', ra.get('avg_aqi', 'N/A'))}</b>.
+            <div style="font-size:0.75rem; color:#64748B;">
+                Passes through congested urban arteries. Peak AQI: <b style="color:#DC2626;">{ra.get('max_aqi', ra.get('avg_aqi', 'N/A'))}</b>.
             </div>
         </div>""",
         unsafe_allow_html=True
@@ -159,36 +160,71 @@ with card_a:
 
 with card_b:
     st.markdown(
-        f"""<div style="background:#0A1A0A; border:1px solid #14532D; border-top:3px solid #22C55E;
-                        border-radius:10px; padding:18px 20px; min-height:230px;
-                        box-shadow:0 2px 16px rgba(34,197,94,0.10);">
+        f"""<div style="background:#FFFFFF; border:1px solid #1E3A8A; border-top:3px solid #2563EB;
+                        border-radius:10px; padding:16px 18px; min-height:250px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <b style="font-size:0.98rem; color:#16A34A;">{rb['name']}</b>
-                <span style="background:rgba(34,197,94,0.15); border:1px solid #14532D; color:#16A34A;
-                      font-size:0.70rem; font-weight:700; padding:3px 10px; border-radius:3px;">
-                    RECOMMENDED
+                <b style="font-size:0.92rem; color:#0F172A;">{rb['name']}</b>
+                <span style="background:rgba(37,99,235,0.15); border:1px solid #1E3A8A; color:#2563EB;
+                      font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:3px;">
+                    🔵 {rb.get('tag', 'ALTERNATIVE')}
                 </span>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-                <div style="background:#0A140A; padding:9px; border-radius:5px; border:1px solid #1A2E1A;">
-                    <div style="font-size:0.70rem; color:#64748B;">Distance</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#0F172A;">{rb['distance_km']} km</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rb['distance_km']} km</div>
                 </div>
-                <div style="background:#0A140A; padding:9px; border-radius:5px; border:1px solid #1A2E1A;">
-                    <div style="font-size:0.70rem; color:#64748B;">Est. Travel Time</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#0F172A;">{rb['duration_mins']} min</div>
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rb['duration_mins']} min</div>
                 </div>
-                <div style="background:#0A1A0A; padding:9px; border-radius:5px; border:1px solid #14532D;">
-                    <div style="font-size:0.70rem; color:#166534;">Average AQI</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#16A34A;">{rb['avg_aqi']}</div>
+                <div style="background:#EFF6FF; padding:8px; border-radius:5px; border:1px solid #BFDBFE;">
+                    <div style="font-size:0.68rem; color:#1E40AF;">Average AQI</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#2563EB;">{rb['avg_aqi']}</div>
                 </div>
-                <div style="background:#0A1A0A; padding:9px; border-radius:5px; border:1px solid #14532D;">
-                    <div style="font-size:0.70rem; color:#166534;">Exposure Score</div>
-                    <div style="font-size:1.2rem; font-weight:800; color:#16A34A;">{rb['exposure_score']} / 100</div>
+                <div style="background:#EFF6FF; padding:8px; border-radius:5px; border:1px solid #BFDBFE;">
+                    <div style="font-size:0.68rem; color:#1E40AF;">Exposure Score</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#2563EB;">{rb['exposure_score']} / 100</div>
                 </div>
             </div>
-            <div style="font-size:0.78rem; color:#166534;">
-                <b style="color:#16A34A;">{route_data['reduction_pct']}% lower PM2.5 inhalation</b> vs Route A.
+            <div style="font-size:0.75rem; color:#1E40AF;">
+                Secondary transit corridor. Peak AQI: <b style="color:#2563EB;">{rb.get('max_aqi', rb.get('avg_aqi', 'N/A'))}</b>.
+            </div>
+        </div>""",
+        unsafe_allow_html=True
+    )
+
+with card_c:
+    st.markdown(
+        f"""<div style="background:#FFFFFF; border:1px solid #14532D; border-top:3px solid #16A34A;
+                        border-radius:10px; padding:16px 18px; min-height:250px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <b style="font-size:0.92rem; color:#0F172A;">{rc['name']}</b>
+                <span style="background:rgba(22,163,74,0.15); border:1px solid #14532D; color:#16A34A;
+                      font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:3px;">
+                    🟢 ★ RECOMMENDED
+                </span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rc['distance_km']} km</div>
+                </div>
+                <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
+                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rc['duration_mins']} min</div>
+                </div>
+                <div style="background:#F0FDF4; padding:8px; border-radius:5px; border:1px solid #BBF7D0;">
+                    <div style="font-size:0.68rem; color:#166534;">Average AQI</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#16A34A;">{rc['avg_aqi']}</div>
+                </div>
+                <div style="background:#F0FDF4; padding:8px; border-radius:5px; border:1px solid #BBF7D0;">
+                    <div style="font-size:0.68rem; color:#166534;">Exposure Score</div>
+                    <div style="font-size:1.15rem; font-weight:800; color:#16A34A;">{rc['exposure_score']} / 100</div>
+                </div>
+            </div>
+            <div style="font-size:0.75rem; color:#166534;">
+                <b style="color:#16A34A;">{route_data['reduction_pct']}% lower PM2.5 inhalation</b> vs Direct Arterial Route.
             </div>
         </div>""",
         unsafe_allow_html=True
@@ -197,7 +233,7 @@ with card_b:
 # ── 3.3 Route Map ──────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown("### 3.3  Geospatial Route and Pollution Hotspot Map")
-st.caption("Displaying the optimized Best Route (solid green): lowest cumulative particulate exposure corridor. Red circles: localized high-pollution hotspots avoided.")
+st.caption("Displaying 3 routes: 🟢 Clean-Air Corridor (Green, Recommended), 🔴 Direct Arterial Route (Red, High Exposure), 🔵 Alternative Corridor (Blue). Red circles indicate localized high-pollution hotspots avoided.")
 render_route_map(route_data)
 
 # ── 3.4 Notifications ─────────────────────────────────────────────────────
