@@ -98,9 +98,9 @@ h1, h2, h3, h4 { color: #0F172A !important; }
     border: 1px solid #334155;
     border-radius: 8px;
     padding: 10px 14px;
-    height: 106px;
-    min-height: 106px;
-    max-height: 106px;
+    height: 110px;
+    min-height: 110px;
+    max-height: 110px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -232,26 +232,59 @@ with tab_forecast:
     st.markdown("### 2.2  Forecast Summary & Horizon Projection")
     mc1, mc2, mc3, mc4 = st.columns(4)
 
+    cur_cat = get_aqi_category_info(current_aqi)
+    delta_improving = aqi_delta <= 0
+    delta_color = "#16A34A" if delta_improving else "#DC2626"
+    delta_arrow = "↓" if delta_improving else "↑"
+
     with mc1:
-        st.metric("Current Observed AQI", f"{int(current_aqi)}")
-    with mc2:
-        st.metric(
-            f"Predicted AQI ({chosen_label})", f"{int(final_pred_aqi)}",
-            delta=f"{aqi_delta:+.1f}  ({trend_label})", delta_color="inverse"
+        st.markdown(
+            f"""<div class="eq-metric-box">
+                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                    Current Observed AQI
+                </div>
+                <div style="font-size:1.6rem; font-weight:800; color:{cur_cat['color']}; line-height:1;">
+                    {int(current_aqi)}
+                </div>
+                <div style="font-size:0.72rem; color:#64748B; line-height:1.2;">
+                    Baseline Sensor Telemetry
+                </div>
+            </div>""",
+            unsafe_allow_html=True
         )
+
+    with mc2:
+        st.markdown(
+            f"""<div class="eq-metric-box">
+                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                    Predicted AQI ({chosen_label})
+                </div>
+                <div style="font-size:1.6rem; font-weight:800; color:{pred_cat['color']}; line-height:1;">
+                    {int(final_pred_aqi)}
+                </div>
+                <div style="font-size:0.72rem; font-weight:700; color:{delta_color}; line-height:1.2;">
+                    {delta_arrow} {abs(aqi_delta):.1f} AQI ({trend_label})
+                </div>
+            </div>""",
+            unsafe_allow_html=True
+        )
+
     with mc3:
         st.markdown(
             f"""<div class="eq-metric-box">
                 <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
                     Predicted Severity Category
                 </div>
-                <div style="font-size:1.1rem; font-weight:700; color:{pred_cat['color']};">
+                <div style="font-size:1.05rem; font-weight:800; color:{pred_cat['color']}; line-height:1.2; white-space:normal; word-break:break-word;">
                     {pred_cat['label']}
                 </div>
-                <div style="font-size:0.72rem; color:#64748B;">{pred_cat['severity']}</div>
+                <div style="font-size:0.72rem; color:#64748B; line-height:1.2; white-space:normal; word-break:break-word;">
+                    {pred_cat['severity']}
+                </div>
             </div>""",
             unsafe_allow_html=True
         )
+
     with mc4:
         low_b = forecast_df["lower_bound"].iloc[-1]
         up_b  = forecast_df["upper_bound"].iloc[-1]
@@ -260,10 +293,12 @@ with tab_forecast:
                 <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
                     95% Confidence Interval
                 </div>
-                <div style="font-size:1.1rem; font-weight:700; color:#818CF8;">
+                <div style="font-size:1.25rem; font-weight:800; color:#4F46E5; line-height:1.2;">
                     {int(low_b)} — {int(up_b)} AQI
                 </div>
-                <div style="font-size:0.72rem; color:#64748B;">Margin: +/- {(up_b-low_b)/2:.1f}</div>
+                <div style="font-size:0.72rem; color:#64748B; line-height:1.2;">
+                    Margin: +/- {(up_b-low_b)/2:.1f} AQI
+                </div>
             </div>""",
             unsafe_allow_html=True
         )
