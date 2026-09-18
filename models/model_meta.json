@@ -1,5 +1,5 @@
 {
-  "last_trained_timestamp": "2026-09-17T13:45:03Z",
+  "last_trained_timestamp": "2026-09-18T13:01:19Z",
   "dataset_source": "Pune_Dataset(processed).xlsx",
   "total_samples": 2500,
   "feature_columns": [
@@ -34,89 +34,6 @@
     }
   },
   "retraining_history": [
-    {
-      "timestamp": "2026-09-07T14:17:16Z",
-      "metrics": {
-        "LSTM": {
-          "rmse": 35.0,
-          "mae": 30.02,
-          "r2_score": 0.7,
-          "final_val_loss": 0.0257,
-          "epochs_trained": 6,
-          "history": [
-            {
-              "epoch": 1,
-              "train_loss": 0.0558,
-              "val_loss": 0.0299
-            },
-            {
-              "epoch": 2,
-              "train_loss": 0.0194,
-              "val_loss": 0.0276
-            },
-            {
-              "epoch": 3,
-              "train_loss": 0.017,
-              "val_loss": 0.0263
-            },
-            {
-              "epoch": 4,
-              "train_loss": 0.0164,
-              "val_loss": 0.0271
-            },
-            {
-              "epoch": 5,
-              "train_loss": 0.0159,
-              "val_loss": 0.0257
-            },
-            {
-              "epoch": 6,
-              "train_loss": 0.0155,
-              "val_loss": 0.0257
-            }
-          ]
-        },
-        "GRU": {
-          "rmse": 35.35,
-          "mae": 30.4,
-          "r2_score": 0.7,
-          "final_val_loss": 0.0259,
-          "epochs_trained": 6,
-          "history": [
-            {
-              "epoch": 1,
-              "train_loss": 0.0509,
-              "val_loss": 0.027
-            },
-            {
-              "epoch": 2,
-              "train_loss": 0.0182,
-              "val_loss": 0.0274
-            },
-            {
-              "epoch": 3,
-              "train_loss": 0.0165,
-              "val_loss": 0.0269
-            },
-            {
-              "epoch": 4,
-              "train_loss": 0.0158,
-              "val_loss": 0.0262
-            },
-            {
-              "epoch": 5,
-              "train_loss": 0.0157,
-              "val_loss": 0.0259
-            },
-            {
-              "epoch": 6,
-              "train_loss": 0.0154,
-              "val_loss": 0.0263
-            }
-          ]
-        }
-      }
-    },
     {
       "timestamp": "2026-09-07T14:45:52Z",
       "metrics": {
@@ -376,6 +293,44 @@
     },
     {
       "timestamp": "2026-09-17T13:43:59Z",
+      "metrics": {
+        "LSTM": {
+          "rmse": 8.42,
+          "mae": 6.15,
+          "r2_score": 0.884,
+          "final_val_loss": 0.0038,
+          "epochs_trained": 12
+        },
+        "GRU": {
+          "rmse": 7.95,
+          "mae": 5.82,
+          "r2_score": 0.902,
+          "final_val_loss": 0.0034,
+          "epochs_trained": 12
+        }
+      }
+    },
+    {
+      "timestamp": "2026-09-17T13:45:03Z",
+      "metrics": {
+        "LSTM": {
+          "rmse": 8.42,
+          "mae": 6.15,
+          "r2_score": 0.884,
+          "final_val_loss": 0.0038,
+          "epochs_trained": 12
+        },
+        "GRU": {
+          "rmse": 7.95,
+          "mae": 5.82,
+          "r2_score": 0.902,
+          "final_val_loss": 0.0034,
+          "epochs_trained": 12
+        }
+      }
+    },
+    {
+      "timestamp": "2026-09-18T13:01:10Z",
       "metrics": {
         "LSTM": {
           "rmse": 8.42,
