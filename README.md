@@ -87,7 +87,7 @@ The platform is organized strictly across **4 Core Engineering Modules** (Weeks 
   $$\mathbf{Y}_h = y_0 + (\mathbf{\hat{Y}}_h - \mathbf{\hat{Y}}_0)$$
   Eliminates artificial jumps, ensuring that low-AQI stations (e.g. 28–34) and high-AQI stations (e.g. 108) evolve smoothly along their neural diurnal trajectories.
 - **95% Confidence Interval Cone:** Temporal variance expansion based on error propagation:
-  $$\sigma_h = \sigma_0 + \gamma \sqrt{h}, \quad \text{CI}_{95\%} = \hat{y}_h \pm 1.96 \cdot \sigma_h$$
+  $$\sigma_h = \sigma_0 + \gamma \sqrt{h}, \quad \text{CI}_{0.95} = \hat{y}_h \pm 1.96 \cdot \sigma_h$$
 - **Geostatistical Spatial Interpolation:**
   - **Inverse Distance Weighting (IDW):** Fast distance-decay interpolation ($p=2.0$).
   - **Ordinary Kriging:** Gaussian semivariogram modeling with estimation variance and spatial uncertainty quantification.
