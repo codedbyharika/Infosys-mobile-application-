@@ -1,16 +1,16 @@
-"""
+﻿"""
 Alert, Health Advisory, and Notification Center Components — Dark Theme
 Personalized health guidance, travel advisories, and push notification feed.
 """
 
 import streamlit as st
-from data.demo_data import HEALTH_PROFILES, get_aqi_category_info
+from data.custom_dataset import HEALTH_PROFILES, get_aqi_category_info
 
 BG_CARD  = "#FFFFFF"
 BORDER   = "#334155"
 TEXT_PRI = "#0F172A"
-TEXT_SEC = "#64748B"
-TEXT_DIM = "#64748B"
+TEXT_SEC = "#1E293B"
+TEXT_DIM = "#334155"
 
 
 def render_travel_advisory_card(advisory_text: str, risk_level: str, risk_color: str, reduction_pct: int):
@@ -98,10 +98,10 @@ def render_health_profile_card(profile_name: str, aqi_val: float):
 
 def render_notification_center(notifications: list):
     """Push notification log feed — dark theme."""
-    st.subheader("Push Notification Center — Simulated Alert Feed")
+    st.subheader("Push Notification Center — Pune Alert Feed")
     st.caption(
         "Proactive notifications triggered when monitored thresholds or route risk levels are breached. "
-        "Simulated for UI demonstration."
+        "Generated directly from Pune urban monitoring station telemetry."
     )
 
     severity_cfg = {

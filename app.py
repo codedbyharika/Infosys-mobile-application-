@@ -9,13 +9,14 @@ import base64
 import streamlit as st
 from datetime import datetime
 from pathlib import Path
-from data.demo_data import (
+from data.custom_dataset import (
+    load_pune_data,
     LOCATIONS_DATA,
     HEALTH_PROFILES,
     get_aqi_category_info,
     get_system_services_status
 )
-from components.metrics import render_demo_banner, render_hero_aqi_card
+from components.metrics import render_hero_aqi_card
 from components.sidebar import render_sidebar
 
 # ── Application Configuration ──────────────────────────────────────────────
@@ -53,7 +54,7 @@ st.markdown(
         border: 1px solid #E2E8F0;
     }}
     section[data-testid="stSidebar"] * {{
-        color: #64748B !important;
+        color: #0F172A !important;
     }}
     section[data-testid="stSidebar"] .stSelectbox label {{
         color: #334155 !important;
@@ -87,7 +88,7 @@ st.markdown(
         border-radius: 8px;
         padding: 12px 14px;
     }}
-    [data-testid="stMetricLabel"] {{ color: #64748B !important; }}
+    [data-testid="stMetricLabel"] {{ color: #0F172A !important; }}
     [data-testid="stMetricValue"] {{ color: #0F172A !important; }}
 
     .stButton > button {{
@@ -168,7 +169,7 @@ st.markdown(
     }}
     .stTabs [data-baseweb="tab"] {{
         background: transparent;
-        color: #64748B;
+        color: #0F172A;
         font-weight: 600;
         font-size: 0.84rem;
     }}
@@ -209,12 +210,12 @@ st.markdown(
 
     /* Caption text */
     [data-testid="stCaptionContainer"] {{
-        color: #64748B !important;
+        color: #0F172A !important;
     }}
 
     /* Markdown headings */
     h1, h2, h3, h4 {{ color: #0F172A !important; }}
-    p {{ color: #64748B; }}
+    p {{ color: #0F172A; }}
 
     /* Subheader */
     [data-testid="stHeading"] {{ color: #0F172A !important; }}
@@ -295,7 +296,6 @@ st.markdown(hero_html, unsafe_allow_html=True)
 st.markdown('<div class="body-section">', unsafe_allow_html=True)
 
 st.markdown("<div style='height:22px;'></div>", unsafe_allow_html=True)
-render_demo_banner("Platform Overview — Phase 1 UI")
 
 # ── Problem Statement ──────────────────────────────────────────────────────
 st.markdown("---")
@@ -306,7 +306,7 @@ ps_col1, ps_col2 = st.columns([1.55, 1.0])
 with ps_col1:
     st.markdown(
         """
-        <div style="font-size:0.90rem; color:#64748B; line-height:1.80;">
+        <div style="font-size:0.90rem; color:#0F172A; line-height:1.80;">
             <p>
                 India is home to <b style="color:#0F172A;">39 of the world's 50 most polluted cities</b>
                 (IQ Air World Air Quality Report, 2023). Particulate matter (PM2.5) concentrations
@@ -321,10 +321,10 @@ with ps_col1:
                 Vulnerable populations (asthmatics, the elderly, children) lack
                 <b style="color:#334155;">personalized, proactive</b> environmental health guidance.
             </p>
-            <p style="color:#64748B; margin-bottom:6px;">
+            <p style="color:#0F172A; margin-bottom:6px;">
                 This project addresses the gap by building an integrated AI system that:
             </p>
-            <ul style="color:#64748B;">
+            <ul style="color:#0F172A;">
                 <li>Ingests live multi-pollutant telemetry from OpenAQ, WAQI, and CPCB sensor networks.</li>
                 <li>Forecasts future AQI 1–24 hours ahead using deep recurrent neural architectures (LSTM / GRU).</li>
                 <li>Computes route-level cumulative pollution exposure and recommends clean-air corridors.</li>
@@ -352,7 +352,7 @@ with ps_col2:
                 <div style="font-size:1.20rem; font-weight:800; color:{color}; min-width:65px;">
                     {val}
                 </div>
-                <div style="font-size:0.78rem; color:#64748B; line-height:1.4;">{label}</div>
+                <div style="font-size:0.78rem; color:#0F172A; line-height:1.4;">{label}</div>
             </div>
             """,
             unsafe_allow_html=True
@@ -375,7 +375,7 @@ render_hero_aqi_card(
 st.markdown("---")
 st.markdown("## Project Modules — Architecture and Scope")
 st.markdown(
-    "<p style='color:#64748B; font-size:0.88rem; margin-top:-8px; margin-bottom:20px;'>"
+    "<p style='color:#0F172A; font-size:0.88rem; margin-top:-8px; margin-bottom:20px;'>"
     "Four sequential development modules, each corresponding to a distinct research and "
     "engineering milestone over an eight-week delivery timeline."
     "</p>",
@@ -435,36 +435,19 @@ MODULE_DEFS = [
         "page":      "pages/3_Route_Advisory_Notifications.py",
         "btn_key":   "nav_m3",
     },
-    {
-        "number": "04", "weeks": "Weeks 7–8", "color": "#F97316",
-        "title": "System Integration, Testing and Project Finalization",
-        "summary": (
-            "Validates end-to-end pipeline integrity through automated testing. Produces "
-            "system architecture documentation, API contracts, and deployment guides."
-        ),
-        "deliverables": [
-            "Full integration test suite across all module interfaces and API endpoints",
-            "System architecture diagrams, dataflow docs, and API contract specifications",
-            "Model evaluation: RMSE, MAE, SMAPE, R2 benchmarked against ARIMA baseline",
-            "Containerized deployment guide (Docker + FastAPI + Streamlit)",
-        ],
-        "tech":      ["Pytest", "Docker", "InfluxDB", "Redis", "MLflow"],
-        "page":      "pages/4_System_Integration_Testing.py",
-        "btn_key":   "nav_m4",
-    },
 ]
 
 
 def _build_module_card(mod: dict) -> str:
     color = mod["color"]
     tag_pills = " ".join(
-        "<span style='background:#E2E8F0; color:#64748B; font-size:0.68rem; "
+        "<span style='background:#E2E8F0; color:#0F172A; font-size:0.68rem; "
         "font-weight:600; padding:3px 9px; border-radius:3px; border:1px solid #334155;'>"
         + t + "</span>"
         for t in mod["tech"]
     )
     bullet_rows = "".join(
-        "<div style='font-size:0.78rem; color:#64748B; padding:5px 8px; "
+        "<div style='font-size:0.78rem; color:#0F172A; padding:5px 8px; "
         "background:#F1F5F9; border-radius:4px; border:1px solid #E2E8F0; line-height:1.4;'>"
         "<span style='color:" + color + "; font-weight:700; margin-right:6px;'>-</span>"
         + d + "</div>"
@@ -489,7 +472,7 @@ def _build_module_card(mod: dict) -> str:
         f"</div></div>"
         f"<div style='display:flex; gap:6px; flex-wrap:wrap;'>{tag_pills}</div>"
         f"</div>"
-        f"<p style='font-size:0.86rem; color:#64748B; line-height:1.60; margin:0 0 12px 0;'>"
+        f"<p style='font-size:0.86rem; color:#0F172A; line-height:1.60; margin:0 0 12px 0;'>"
         f"{mod['summary']}</p>"
         f"<div style='display:grid; grid-template-columns:1fr 1fr; gap:5px;'>{bullet_rows}</div>"
         f"</div>"
@@ -530,7 +513,7 @@ with arch_col1:
                 <div style="flex:1; background:#FFFFFF; border:1px solid #334155; border-radius:6px;
                             padding:8px 14px; display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:0.83rem; font-weight:700; color:#334155;">{title}</span>
-                    <span style="font-size:0.73rem; color:#64748B;">{detail}</span>
+                    <span style="font-size:0.73rem; color:#0F172A;">{detail}</span>
                 </div>
             </div>
             """,
@@ -539,7 +522,7 @@ with arch_col1:
 
 with arch_col2:
     st.markdown(
-        "<div style='font-size:0.78rem; font-weight:700; color:#64748B; "
+        "<div style='font-size:0.78rem; font-weight:700; color:#0F172A; "
         "text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px;'>Technology Stack</div>",
         unsafe_allow_html=True
     )
@@ -551,8 +534,8 @@ with arch_col2:
         ("Data Sources",     "OpenAQ, WAQI, CPCB, OpenWeatherMap",   "#FBBF24"),
         ("Maps",             "Folium + Leaflet.js",                   "#16A34A"),
         ("Notifications",    "Firebase Cloud Messaging (FCM)",        "#F97316"),
-        ("Time-Series DB",   "InfluxDB + PostgreSQL TimescaleDB",     "#64748B"),
-        ("Containers",       "Docker + Docker Compose",               "#64748B"),
+        ("Time-Series DB",   "InfluxDB + PostgreSQL TimescaleDB",     "#0F172A"),
+        ("Containers",       "Docker + Docker Compose",               "#0F172A"),
     ]
     for label, desc, color in tech_stack:
         st.markdown(
@@ -565,7 +548,7 @@ with arch_col2:
                 <span style="font-size:0.78rem; font-weight:700; color:#334155; min-width:115px;">
                     {label}
                 </span>
-                <span style="font-size:0.75rem; color:#64748B;">{desc}</span>
+                <span style="font-size:0.75rem; color:#0F172A;">{desc}</span>
             </div>
             """,
             unsafe_allow_html=True
@@ -578,13 +561,13 @@ st.markdown("## Integration Status Summary")
 services = get_system_services_status()
 status_color_map = {
     "Active":           "#16A34A",
-    "Demo Mode":        "#60A5FA",
+    "Operational":      "#60A5FA",
     "Pending Training": "#FBBF24",
-    "Not Connected":    "#64748B",
+    "Not Connected":    "#0F172A",
 }
 
 for s in services:
-    color = status_color_map.get(s["status"], "#64748B")
+    color = status_color_map.get(s["status"], "#0F172A")
     st.markdown(
         f"""
         <div style="display:flex; align-items:center; justify-content:space-between; background:#FFFFFF;
@@ -611,7 +594,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style="text-align:center; padding:12px 0; font-size:0.78rem; color:#334155; line-height:1.9;">
-        <b style="color:#64748B;">AI-Powered Environmental Intelligence System</b><br>
+        <b style="color:#0F172A;">AI-Powered Environmental Intelligence System</b><br>
         Air Quality Prediction and Smart Mobility Recommendations<br>
         Infosys Springboard Internship Project &nbsp;|&nbsp; Built with Python and Streamlit
     </div>

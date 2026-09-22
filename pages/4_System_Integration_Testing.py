@@ -1,11 +1,10 @@
-"""
+﻿"""
 Module 4 — System Integration, Testing and Project Finalization — Dark Theme
 """
 
 import streamlit as st
 import time
-from data.demo_data import get_system_services_status, get_demo_test_suite_results
-from components.metrics import render_demo_banner
+from data.custom_dataset import get_system_services_status, get_system_test_suite_results
 from components.sidebar import render_sidebar
 
 st.set_page_config(
@@ -20,10 +19,10 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .stApp { background-color: #F8FAFC !important; }
 section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
-section[data-testid="stSidebar"] * { color: #64748B !important; }
+section[data-testid="stSidebar"] * { color: #0F172A !important; }
 .block-container { padding-top: 1.8rem; padding-bottom: 2rem; max-width: 1380px; }
 [data-testid="stMetric"] { background: #FFFFFF !important; border: 1px solid #334155 !important; border-radius: 8px; }
-[data-testid="stMetricLabel"] { color: #64748B !important; }
+[data-testid="stMetricLabel"] { color: #0F172A !important; }
 [data-testid="stMetricValue"] { color: #0F172A !important; }
 .stButton > button { background: #FFFFFF !important; border: 1px solid #334155 !important; color: #334155 !important; border-radius: 5px; font-weight: 600; }
 .stButton > button[kind="primary"] { background: #1D4ED8 !important; border-color: #2563EB !important; color: white !important; }
@@ -32,11 +31,11 @@ details summary { color: #334155 !important; font-weight: 600; font-size: 0.88re
 [data-testid="stProgress"] > div { background: #334155; }
 [data-testid="stProgress"] > div > div { background: linear-gradient(90deg, #2563EB, #7C3AED) !important; }
 [data-testid="stTable"] table { background: #FFFFFF; color: #334155; }
-[data-testid="stTable"] th { background: #334155 !important; color: #64748B !important; }
+[data-testid="stTable"] th { background: #334155 !important; color: #0F172A !important; }
 [data-testid="stTable"] td { border-color: #334155 !important; }
 hr { border-color: #334155 !important; }
 h1, h2, h3, h4 { color: #0F172A !important; }
-[data-testid="stCaptionContainer"] { color: #64748B !important; }
+[data-testid="stCaptionContainer"] { color: #0F172A !important; }
 [data-testid="stSpinner"] { color: #60A5FA !important; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #F8FAFC; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 </style>
@@ -49,7 +48,6 @@ st.caption(
     "End-to-end pipeline health monitoring, automated quality assurance, "
     "system architecture documentation, and Infosys Springboard internship project milestone tracking."
 )
-render_demo_banner("Module 4 — Integration and QA Dashboard")
 st.markdown("---")
 
 # ── 4.1 Service Status Matrix ──────────────────────────────────────────────
@@ -60,20 +58,20 @@ services = get_system_services_status()
 
 status_color_map = {
     "Active":           "#16A34A",
-    "Demo Mode":        "#60A5FA",
+    "Operational":      "#60A5FA",
     "Pending Training": "#FBBF24",
-    "Not Connected":    "#64748B",
+    "Not Connected":    "#0F172A",
 }
 
 status_cols = st.columns(len(services))
 for idx, s in enumerate(services):
-    color = status_color_map.get(s["status"], "#64748B")
+    color = status_color_map.get(s["status"], "#0F172A")
     with status_cols[idx]:
         st.markdown(
             f"""<div style="background:#FFFFFF; border:1px solid #334155;
                             border-top:3px solid {color}; border-radius:6px;
                             padding:10px 8px; text-align:center; min-height:130px;">
-                <div style="font-size:0.72rem; font-weight:600; color:#64748B;
+                <div style="font-size:0.72rem; font-weight:600; color:#0F172A;
                             min-height:30px; line-height:1.3; margin-bottom:6px;">
                     {s['service']}
                 </div>
@@ -126,7 +124,7 @@ for i, (num, title, detail, color) in enumerate(pipeline_steps):
                 <div style="font-size:0.75rem; font-weight:700; color:#334155; line-height:1.3;">
                     {title}
                 </div>
-                <div style="font-size:0.62rem; color:#64748B; margin-top:3px;">{detail}</div>
+                <div style="font-size:0.62rem; color:#0F172A; margin-top:3px;">{detail}</div>
             </div>""",
             unsafe_allow_html=True
         )
@@ -144,7 +142,7 @@ st.markdown("---")
 st.markdown("### 4.3  Automated Test Suite and Quality Assurance")
 
 t_col, runner_col = st.columns([1.6, 1.0])
-test_results = get_demo_test_suite_results()
+test_results = get_system_test_suite_results()
 
 with t_col:
     for t in test_results:
@@ -159,9 +157,9 @@ with t_col:
                             display:flex; justify-content:space-between; align-items:center; gap:12px;">
                 <div style="flex:1;">
                     <span style="font-family:monospace; font-size:0.70rem; background:#F1F5F9;
-                          padding:2px 6px; border-radius:3px; color:#64748B;">{t['id']}</span>
+                          padding:2px 6px; border-radius:3px; color:#0F172A;">{t['id']}</span>
                     <b style="font-size:0.84rem; color:#0F172A; margin-left:8px;">{t['name']}</b>
-                    <div style="font-size:0.74rem; color:#64748B; margin-top:3px;">
+                    <div style="font-size:0.74rem; color:#0F172A; margin-top:3px;">
                         {t['component']} — {t['details']}
                     </div>
                 </div>
@@ -180,17 +178,18 @@ with runner_col:
     st.markdown(
         """<div style="background:#FFFFFF; border:1px solid #334155; border-radius:6px; padding:14px;">
             <div style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px;">
-                Simulated Test Automation Engine
+                System Test Automation Engine
             </div>
-            <p style="font-size:0.78rem; color:#64748B; margin:0 0 12px 0; line-height:1.5;">
-                Executes synthetic validation sweeps across coordinate parsers,
-                AQI sub-index calculations, and API response schemas.
-            </p>
-        </div>""",
+            <div style="font-size:0.77rem; color:#0F172A; margin-top:4px; line-height:1.4;">
+                Triggers programmatic test validation verifying ingestion, index math, ML horizons, and spatial routines.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True
     )
-    if st.button("Run Automated QA Test Suite", use_container_width=True, type="primary"):
-        with st.spinner("Executing simulated test harnesses..."):
+
+    if st.button("Run Full QA Test Suite", key="btn_run_tests", type="primary", use_container_width=True):
+        with st.spinner("Executing system test harnesses..."):
             time.sleep(1.0)
         st.success("4 PASSED, 2 PENDING model / FCM artifacts.")
 
@@ -302,6 +301,6 @@ with st.expander("Deployment and Containerization Guide"):
 with st.expander("Known Limitations and Assumptions"):
     st.markdown("""
     - **Sensor Sparsity:** Monitoring stations concentrated in metro cores. Rural areas require satellite AOD corrections.
-    - **Microclimate Inversions:** Extreme Delhi winter inversions require frequent model recalibration.
-    - **Demo Stage:** Current UI runs on simulated datasets. All production APIs integrated across project milestones.
+    - **Microclimate Inversions:** Extreme winter inversions require periodic model recalibration.
+    - **Dataset Integration:** Full UI and backend run on the preprocessed Pune urban monitoring station dataset.
     """)

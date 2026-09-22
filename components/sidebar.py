@@ -1,6 +1,5 @@
 import streamlit as st
-from data.custom_dataset import load_pune_data
-from data.demo_data import HEALTH_PROFILES
+from data.custom_dataset import load_pune_data, HEALTH_PROFILES
 
 LOCATIONS_DATA = load_pune_data()
 
@@ -49,7 +48,6 @@ def render_sidebar():
         if st.button("Module 1 — Location and Real-Time AQI",  use_container_width=True): st.switch_page("pages/1_Location_AQI_RealTime.py")
         if st.button("Module 2 — Predictive AQI Forecasting",  use_container_width=True): st.switch_page("pages/2_Predictive_AQI_Forecasting.py")
         if st.button("Module 3 — Route Advisory and Alerts",   use_container_width=True): st.switch_page("pages/3_Route_Advisory_Notifications.py")
-        if st.button("Module 4 — System Integration Testing",  use_container_width=True): st.switch_page("pages/4_System_Integration_Testing.py")
 
         st.markdown(
             """

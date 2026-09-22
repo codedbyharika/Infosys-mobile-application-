@@ -1,6 +1,5 @@
-"""Components package for AI-Powered Environmental Intelligence System."""
+﻿"""Components package for AI-Powered Environmental Intelligence System."""
 from .metrics import (
-    render_demo_banner,
     render_hero_aqi_card,
     render_pollutant_cards,
     render_weather_cards

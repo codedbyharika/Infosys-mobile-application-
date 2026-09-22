@@ -10,7 +10,19 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
+
+def root_mean_squared_error(y_true, y_pred):
+    return float(np.sqrt(np.mean((np.asarray(y_true) - np.asarray(y_pred)) ** 2)))
+
+def mean_absolute_error(y_true, y_pred):
+    return float(np.mean(np.abs(np.asarray(y_true) - np.asarray(y_pred))))
+
+def r2_score(y_true, y_pred):
+    yt = np.asarray(y_true)
+    yp = np.asarray(y_pred)
+    ss_res = np.sum((yt - yp) ** 2)
+    ss_tot = np.sum((yt - np.mean(yt)) ** 2)
+    return float(1.0 - (ss_res / max(1e-7, ss_tot)))
 
 from ml.models import (
     FEATURE_COLUMNS, TARGET_COLUMNS, INPUT_SEQ_LEN, DEFAULT_HORIZON,

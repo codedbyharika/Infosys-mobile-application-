@@ -1,13 +1,11 @@
-"""
+﻿"""
 Module 3 — Route Advisory, Dashboard and Push Notifications — Dark Theme
 """
 
 import streamlit as st
 from datetime import datetime, date
-from data.custom_dataset import load_pune_data
-from data.demo_data import get_demo_notifications
+from data.custom_dataset import load_pune_data, get_pune_notifications
 from ml.route_exposure import RoutePollutionEstimator
-from components.metrics import render_demo_banner
 from components.maps import render_route_map
 from components.alerts import render_travel_advisory_card, render_notification_center
 from components.sidebar import render_sidebar
@@ -24,7 +22,7 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .stApp { background-color: #F8FAFC !important; }
 section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
-section[data-testid="stSidebar"] * { color: #64748B !important; }
+section[data-testid="stSidebar"] * { color: #0F172A !important; }
 .block-container { padding-top: 1.8rem; padding-bottom: 2rem; max-width: 1380px; }
 [data-testid="stMetric"] { background: #FFFFFF !important; border: 1px solid #334155 !important; border-radius: 8px; }
 .stButton > button { background: #FFFFFF !important; border: 1px solid #334155 !important; color: #334155 !important; border-radius: 5px; font-weight: 600; }
@@ -37,7 +35,7 @@ details summary { color: #334155 !important; font-weight: 600; font-size: 0.88re
 [data-testid="stSlider"] > div > div > div { background: #3B82F6 !important; }
 hr { border-color: #334155 !important; }
 h1, h2, h3, h4 { color: #0F172A !important; }
-[data-testid="stCaptionContainer"] { color: #64748B !important; }
+[data-testid="stCaptionContainer"] { color: #0F172A !important; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #F8FAFC; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 </style>
 """, unsafe_allow_html=True)
@@ -53,43 +51,41 @@ st.caption(
     "Pollution-aware smart mobility: minimizing cumulative particulate exposure "
     "through route optimization and proactive health alerts."
 )
-render_demo_banner("Module 3 — Routing and Advisory Prototype")
 st.markdown("---")
 
 # ── 3.1 Travel Plan ────────────────────────────────────────────────
 st.markdown("### 3.1  Travel Journey Configuration")
 
-pune_stations = list(load_pune_data().keys())
-dropdown_options = pune_stations + ["Type Custom Landmark / Address..."]
+pune_data_map = load_pune_data()
+pune_stations = list(pune_data_map.keys())
+clean_names = {k: k.replace("_", " ") for k in pune_stations}
+dropdown_options = [f"{clean_names[k]} [{k}]" for k in pune_stations]
+stn_lookup = {f"{clean_names[k]} [{k}]": k for k in pune_stations}
 
 m3_c1, m3_c2 = st.columns(2)
 with m3_c1:
-    st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Origin Landmark / Station</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Origin Station (10 Pune Regions)</div>", unsafe_allow_html=True)
+    orig_idx = 3 if len(dropdown_options) > 3 else 0  # Hadapsar
     orig_pick = st.selectbox(
-        "Origin Landmark / Station",
+        "Origin Station",
         options=dropdown_options,
-        index=dropdown_options.index("Hadapsar_Gadital_01") if "Hadapsar_Gadital_01" in dropdown_options else 0,
+        index=orig_idx,
         key="m3_orig_select",
         label_visibility="collapsed"
     )
-    if orig_pick == "Type Custom Landmark / Address...":
-        source_loc = st.text_input("Type Origin Landmark", value="Shivajinagar, Pune", key="m3_custom_origin")
-    else:
-        source_loc = orig_pick
+    source_loc = stn_lookup[orig_pick]
 
 with m3_c2:
-    st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Destination Landmark / Station</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Destination Station (10 Pune Regions)</div>", unsafe_allow_html=True)
+    dest_idx = 0  # Bopodi
     dest_pick = st.selectbox(
-        "Destination Landmark / Station",
+        "Destination Station",
         options=dropdown_options,
-        index=dropdown_options.index("BopadiSquare_65") if "BopadiSquare_65" in dropdown_options else 1,
+        index=dest_idx,
         key="m3_dest_select",
         label_visibility="collapsed"
     )
-    if dest_pick == "Type Custom Landmark / Address...":
-        dest_loc = st.text_input("Type Destination Landmark", value="Viman Nagar, Pune", key="m3_custom_dest")
-    else:
-        dest_loc = dest_pick
+    dest_loc = stn_lookup[dest_pick]
 
 m3_c3, m3_c4, m3_c5 = st.columns([1.0, 1.0, 1.3])
 with m3_c3: travel_date = st.date_input("Travel Date", value=date.today())
@@ -135,11 +131,11 @@ with card_a:
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{ra['distance_km']} km</div>
                 </div>
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{ra['duration_mins']} min</div>
                 </div>
                 <div style="background:#FEF2F2; padding:8px; border-radius:5px; border:1px solid #FECACA;">
@@ -151,7 +147,7 @@ with card_a:
                     <div style="font-size:1.15rem; font-weight:800; color:#DC2626;">{ra['exposure_score']} / 100</div>
                 </div>
             </div>
-            <div style="font-size:0.75rem; color:#64748B;">
+            <div style="font-size:0.75rem; color:#0F172A;">
                 Passes through congested urban arteries. Peak AQI: <b style="color:#DC2626;">{ra.get('max_aqi', ra.get('avg_aqi', 'N/A'))}</b>.
             </div>
         </div>""",
@@ -171,11 +167,11 @@ with card_b:
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rb['distance_km']} km</div>
                 </div>
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rb['duration_mins']} min</div>
                 </div>
                 <div style="background:#EFF6FF; padding:8px; border-radius:5px; border:1px solid #BFDBFE;">
@@ -207,11 +203,11 @@ with card_c:
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rc['distance_km']} km</div>
                 </div>
                 <div style="background:#F1F5F9; padding:8px; border-radius:5px; border:1px solid #E2E8F0;">
-                    <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                    <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                     <div style="font-size:1.15rem; font-weight:800; color:#0F172A;">{rc['duration_mins']} min</div>
                 </div>
                 <div style="background:#F0FDF4; padding:8px; border-radius:5px; border:1px solid #BBF7D0;">
@@ -260,7 +256,7 @@ with pref_col:
         st.toast("Notification preferences saved.")
 
 with feed_col:
-    render_notification_center(get_demo_notifications())
+    render_notification_center(get_pune_notifications())
 
 with st.expander("Future Backend Integration — Module 3 Roadmap (Weeks 5–6)"):
     st.markdown("""

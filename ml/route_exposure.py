@@ -10,7 +10,9 @@ import math
 import numpy as np
 import requests
 from typing import Dict, List, Tuple, Optional, Any
-from ml.spatial_interpolation import haversine_distance, SpatialInterpolator, get_spatial_interpolator
+from ml.spatial_interpolation import haversine_distance, SpatialInterpolator, get_spatial_interpolator, clean_station_name
+from data.custom_dataset import get_aqi_category_info, load_pune_data
+import re
 
 
 MODE_VENTILATION_FACTORS = {
@@ -24,8 +26,36 @@ MODE_VENTILATION_FACTORS = {
 HEALTH_PROFILE_MULTIPLIERS = {
     "General User": 1.0,
     "Asthmatic / Respiratory": 1.40,
+    "Elderly (60+ Years)": 1.25,
     "Elderly": 1.25,
+    "Child (Under 12 Years)": 1.20,
     "Child / Sensitive": 1.20
+}
+
+# 10 Pune dataset station keyword aliases
+PUNE_STATION_ALIASES = {
+    "bopodi": "BopadiSquare_65",
+    "bopadi": "BopadiSquare_65",
+    "karve": "Karve Statue Square_5",
+    "lullanagar": "Lullanagar_Square_14",
+    "lulla nagar": "Lullanagar_Square_14",
+    "hadapsar": "Hadapsar_Gadital_01",
+    "gadital": "Hadapsar_Gadital_01",
+    "deccan": "PMPML_Bus_Depot_Deccan_15",
+    "pmpml": "PMPML_Bus_Depot_Deccan_15",
+    "goodluck": "Goodluck Square_Cafe_23",
+    "chitale": "Chitale Bandhu Corner_41",
+    "railway": "Pune Railway Station_28",
+    "pune railway": "Pune Railway Station_28",
+    "station": "Pune Railway Station_28",
+    "shahu": "Rajashri_Shahu_Bus_stand_19",
+    "rajashri": "Rajashri_Shahu_Bus_stand_19",
+    "katraj": "Rajashri_Shahu_Bus_stand_19",
+    "ambedkar": "Dr Baba Saheb Ambedkar Sethu Junction_60",
+    "babasaheb": "Dr Baba Saheb Ambedkar Sethu Junction_60",
+    "baba saheb": "Dr Baba Saheb Ambedkar Sethu Junction_60",
+    "sethu": "Dr Baba Saheb Ambedkar Sethu Junction_60",
+    "setu": "Dr Baba Saheb Ambedkar Sethu Junction_60",
 }
 
 # Well-known Pune landmark coordinates for offline routing
@@ -104,28 +134,64 @@ class RoutePollutionEstimator:
         self.api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
     def _geocode_location(self, name: str) -> Tuple[float, float]:
-        """Resolves location name to (lat, lon) with robust fallback."""
-        key = name.lower().strip()
+        """Resolves location name to (lat, lon) using preprocessed Pune dataset stations."""
+        if not name:
+            return (18.5204, 73.8567)
 
-        # 1. Match against preprocessed Pune stations
-        if hasattr(self, "interpolator") and self.interpolator and self.interpolator.stations:
-            for stn_name, stn_data in self.interpolator.stations.items():
-                s_lower = stn_name.lower()
-                if s_lower == key or s_lower in key or key in s_lower:
-                    if "lat" in stn_data and "lon" in stn_data:
-                        return (float(stn_data["lat"]), float(stn_data["lon"]))
+        name_str = str(name).strip()
 
-        # 2. Match against Pune landmarks
+        # 0. Check if raw coordinates were passed (e.g. "18.5018, 73.9415")
+        if "," in name_str:
+            parts = name_str.split(",")
+            try:
+                p_lat, p_lon = float(parts[0].strip()), float(parts[1].strip())
+                if 17.5 <= p_lat <= 19.5 and 72.5 <= p_lon <= 75.0:
+                    return (p_lat, p_lon)
+            except ValueError:
+                pass
+
+        stations = self.interpolator.stations if (hasattr(self, "interpolator") and self.interpolator and self.interpolator.stations) else load_pune_data()
+
+        # 1. Direct station key match
+        if name_str in stations:
+            s = stations[name_str]
+            return (float(s["lat"]), float(s["lon"]))
+
+        key = name_str.lower().strip()
+        norm_key = re.sub(r'[^a-z0-9]', '', key.replace('pune', ''))
+
+        # 2. Normalized alphanumeric and clean station name matching
+        for stn_key, s_data in stations.items():
+            k_low = stn_key.lower()
+            clean_name = clean_station_name(stn_key).lower()
+            norm_stn = re.sub(r'[^a-z0-9]', '', k_low)
+            norm_clean = re.sub(r'[^a-z0-9]', '', clean_name)
+
+            if k_low == key or k_low in key or key in k_low:
+                return (float(s_data["lat"]), float(s_data["lon"]))
+            if clean_name in key or key in clean_name:
+                return (float(s_data["lat"]), float(s_data["lon"]))
+            if norm_key and (norm_key in norm_stn or norm_stn in norm_key or norm_key in norm_clean or norm_clean in norm_key):
+                return (float(s_data["lat"]), float(s_data["lon"]))
+
+        # 3. Keyword alias matching for all 10 Pune stations
+        for alias, stn_key in PUNE_STATION_ALIASES.items():
+            if alias in key:
+                if stn_key in stations:
+                    s = stations[stn_key]
+                    return (float(s["lat"]), float(s["lon"]))
+
+        # 4. Match against Pune landmarks
         for k, coords in PUNE_LANDMARKS.items():
             if k in key or key in k:
                 return coords
 
-        # Try Google Geocoding if key is present
+        # 5. Optional Google Geocoding if API key is configured
         if self.api_key:
             try:
                 resp = requests.get(
                     "https://maps.googleapis.com/maps/api/geocode/json",
-                    params={"address": name + ", Pune, India", "key": self.api_key},
+                    params={"address": name_str + ", Pune, India", "key": self.api_key},
                     timeout=4
                 ).json()
                 if resp.get("status") == "OK" and resp.get("results"):
@@ -134,7 +200,7 @@ class RoutePollutionEstimator:
             except Exception:
                 pass
 
-        # Default center of Pune
+        # 6. Default center of Pune
         return (18.5204, 73.8567)
 
     def fetch_google_directions(
@@ -217,6 +283,9 @@ class RoutePollutionEstimator:
             # Offline geometric route generation for all 3 routes
             start_coord = self._geocode_location(origin)
             end_coord = self._geocode_location(destination)
+            if haversine_distance(start_coord[0], start_coord[1], end_coord[0], end_coord[1]) < 0.2:
+                # Add geographic offset if identical endpoints selected so route displays cleanly
+                end_coord = (start_coord[0] + 0.025, start_coord[1] + 0.025)
             route_a_pts, dist_a, dur_a = self._generate_arterial_route(start_coord, end_coord, transport_mode)
             route_b_pts, dist_b, dur_b = self._generate_alternative_route(start_coord, end_coord, transport_mode)
             route_c_pts, dist_c, dur_c = self._generate_bypass_route(start_coord, end_coord, transport_mode)
@@ -264,6 +333,7 @@ class RoutePollutionEstimator:
             "avg_aqi": exp_a["avg_aqi"],
             "max_aqi": exp_a.get("max_aqi", exp_a["avg_aqi"]),
             "exposure_score": exp_a["exposure_score"],
+            "exposure_index": exp_a["exposure_score"],
             "risk_level": exp_a["risk_level"],
             "risk_color": "#DC2626",
             "waypoints": [[wp["lat"], wp["lon"]] for wp in exp_a.get("sampled_waypoints", [])],
@@ -284,6 +354,7 @@ class RoutePollutionEstimator:
             "avg_aqi": exp_b["avg_aqi"],
             "max_aqi": exp_b.get("max_aqi", exp_b["avg_aqi"]),
             "exposure_score": exp_b["exposure_score"],
+            "exposure_index": exp_b["exposure_score"],
             "risk_level": exp_b["risk_level"],
             "risk_color": "#2563EB",
             "waypoints": [[wp["lat"], wp["lon"]] for wp in exp_b.get("sampled_waypoints", [])],
@@ -304,6 +375,7 @@ class RoutePollutionEstimator:
             "avg_aqi": exp_c["avg_aqi"],
             "max_aqi": exp_c.get("max_aqi", exp_c["avg_aqi"]),
             "exposure_score": exp_c["exposure_score"],
+            "exposure_index": exp_c["exposure_score"],
             "risk_level": "Low Exposure Risk",
             "risk_color": "#16A34A",
             "waypoints": [[wp["lat"], wp["lon"]] for wp in exp_c.get("sampled_waypoints", [])],
@@ -318,6 +390,7 @@ class RoutePollutionEstimator:
             "transport_mode": transport_mode,
             "health_profile": health_profile,
             "reduction_pct": max(5.0, reduction_pct),
+            "exposure_reduction_pct": max(5.0, reduction_pct),
             "advisory": advisory,
             "hotspots": exp_a.get("hotspots", []),
             "route_a": res_route_a,
@@ -337,49 +410,90 @@ class RoutePollutionEstimator:
         mode: str,
         health_profile: str
     ) -> dict:
-        """Samples points along polyline and computes cumulative exposure."""
+        """Samples points along polyline and computes cumulative exposure using Ordinary Kriging."""
         if not polyline:
-            return {"avg_aqi": 80.0, "exposure_score": 45.0, "risk_level": "Moderate Risk", "risk_color": "#CA8A04", "sampled_waypoints": [], "hotspots": []}
+            return {
+                "avg_aqi": 80.0,
+                "max_aqi": 80.0,
+                "exposure_score": 45.0,
+                "risk_level": "Moderate Risk",
+                "risk_color": "#CA8A04",
+                "sampled_waypoints": [],
+                "hotspots": []
+            }
 
-        # Subsample ~10-15 points along polyline
-        step = max(1, len(polyline) // 12)
-        samples = polyline[::step]
+        # Sample ~12-16 points along polyline for dense intermediary coverage
+        n_pts = len(polyline)
+        step = max(1, n_pts // 14)
+        samples = [polyline[i] for i in range(0, n_pts, step)]
         if polyline[-1] not in samples:
             samples.append(polyline[-1])
 
         aqi_values = []
         waypoint_data = []
         hotspots = []
+        cumulative_dist = 0.0
+        prev_pt = None
 
-        for lat, lon in samples:
+        for idx, (lat, lon) in enumerate(samples):
+            if prev_pt is not None:
+                cumulative_dist += haversine_distance(prev_pt[0], prev_pt[1], lat, lon)
+            prev_pt = (lat, lon)
+
+            # Ordinary Kriging spatial interpolation at intermediary waypoint
             interp = self.interpolator.kriging(lat, lon)
-            local_aqi = interp["estimated_aqi"]
+            local_aqi = round(float(interp.get("estimated_aqi", 75.0)), 1)
             aqi_values.append(local_aqi)
 
+            cat_info = get_aqi_category_info(local_aqi)
+            stn_raw = interp.get("nearest_station", "Pune Region")
+            clean_stn = interp.get("nearest_station_clean", clean_station_name(stn_raw))
+            dist_to_stn = round(float(interp.get("distance_km", 1.5)), 2)
+
             wp_info = {
-                "lat": round(lat, 5),
-                "lon": round(lon, 5),
+                "index": idx + 1,
+                "lat": round(float(lat), 5),
+                "lon": round(float(lon), 5),
                 "aqi": local_aqi,
-                "nearest_station": interp.get("nearest_station", "")
+                "category": cat_info.get("category", "Moderate"),
+                "category_color": cat_info.get("color", "#F59E0B"),
+                "nearest_station": stn_raw,
+                "nearest_station_clean": clean_stn,
+                "distance_to_station_km": dist_to_stn,
+                "distance_from_origin_km": round(cumulative_dist, 2),
+                "confidence_pct": round(float(interp.get("confidence", 0.92) * 100), 1),
+                "kriging_variance": interp.get("kriging_variance", 2.0),
+                "uncertainty_score": interp.get("uncertainty_score", 1.4)
             }
             waypoint_data.append(wp_info)
 
             if local_aqi > 115.0:
                 hotspots.append({
-                    "lat": round(lat, 5),
-                    "lon": round(lon, 5),
+                    "lat": round(float(lat), 5),
+                    "lon": round(float(lon), 5),
                     "aqi": local_aqi,
-                    "description": f"High Pollution Zone ({int(local_aqi)} AQI near {interp.get('nearest_station', 'Corridor')})"
+                    "description": f"High Pollution Zone ({int(local_aqi)} AQI near {clean_stn})"
                 })
 
-        avg_aqi = round(float(np.mean(aqi_values)), 1)
+        avg_aqi = round(float(np.mean(aqi_values)), 1) if aqi_values else 80.0
         max_aqi = round(float(np.max(aqi_values)), 1) if aqi_values else avg_aqi
         mode_factor = MODE_VENTILATION_FACTORS.get(mode, 1.0)
-        health_factor = HEALTH_PROFILE_MULTIPLIERS.get(health_profile, 1.0)
+        health_factor = HEALTH_PROFILE_MULTIPLIERS.get(health_profile)
+        if health_factor is None:
+            p_lower = (health_profile or "").lower()
+            if "asthma" in p_lower or "respiratory" in p_lower:
+                health_factor = 1.40
+            elif "elder" in p_lower:
+                health_factor = 1.25
+            elif "child" in p_lower or "sensitive" in p_lower:
+                health_factor = 1.20
+            else:
+                health_factor = 1.0
 
-        # Exposure index: (avg_aqi / 100) * (duration / 30) * mode_factor * health_factor * 35
-        raw_exposure = (avg_aqi / 100.0) * (duration_mins / 30.0) * mode_factor * health_factor * 35.0
-        exposure_score = round(min(100.0, max(10.0, raw_exposure)), 1)
+        # Exposure index: normalized by duration, respiratory ventilation, and health sensitivity
+        norm_duration = min(90.0, max(10.0, duration_mins)) / 30.0
+        raw_exposure = (avg_aqi / 100.0) * norm_duration * mode_factor * health_factor * 18.0
+        exposure_score = round(min(100.0, max(5.0, raw_exposure)), 1)
 
         if exposure_score >= 65:
             risk = "High Exposure Risk"

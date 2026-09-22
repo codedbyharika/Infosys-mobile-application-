@@ -10,8 +10,6 @@ import time
 import json
 from typing import Optional, Dict, Any
 
-from ml.train import train_models
-
 
 class RetrainingPipeline:
     """
@@ -70,6 +68,7 @@ class RetrainingPipeline:
                     history = []
 
             # Execute training
+            from ml.train import train_models
             new_meta = train_models(
                 dataset_path=new_batch_path,
                 output_dir=self.models_dir,

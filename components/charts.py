@@ -1,4 +1,4 @@
-"""
+﻿"""
 Chart Components — Dark Theme Plotly Visualizations
 All charts use plotly_white template with custom dark background colors.
 Fixes: add_vline uses ISO string to avoid Plotly 6 + pandas Timestamp arithmetic issue.
@@ -13,17 +13,17 @@ import streamlit as st
 DARK_LAYOUT = dict(
     paper_bgcolor="#F8FAFC",
     plot_bgcolor="#F8FAFC",
-    font=dict(family="Inter, sans-serif", size=11, color="#64748B"),
+    font=dict(family="Inter, sans-serif", size=11, color="#0F172A"),
     xaxis=dict(
         gridcolor="#334155",
         linecolor="#334155",
-        tickcolor="#64748B",
+        tickcolor="#0F172A",
         zerolinecolor="#334155",
     ),
     yaxis=dict(
         gridcolor="#334155",
         linecolor="#334155",
-        tickcolor="#64748B",
+        tickcolor="#0F172A",
         zerolinecolor="#334155",
     ),
     legend=dict(
@@ -65,7 +65,7 @@ def render_aqi_forecast_chart(hist_df: pd.DataFrame, forecast_df: pd.DataFrame, 
             y0=y0, y1=y1,
             fillcolor=color, opacity=1, line_width=0,
             annotation_text=label, annotation_position="top left",
-            annotation_font_size=9, annotation_font_color="#64748B"
+            annotation_font_size=9, annotation_font_color="#0F172A"
         )
 
     # Confidence interval ribbon
@@ -118,12 +118,12 @@ def render_aqi_forecast_chart(hist_df: pd.DataFrame, forecast_df: pd.DataFrame, 
     fig.add_shape(
         type="line", x0=now_iso, x1=now_iso, y0=0, y1=1,
         xref="x", yref="paper",
-        line=dict(color="#64748B", width=1.5, dash="dot")
+        line=dict(color="#0F172A", width=1.5, dash="dot")
     )
     fig.add_annotation(
         x=now_iso, y=1, xref="x", yref="paper",
         text="Current — Forecast Start", showarrow=False, yanchor="bottom",
-        font=dict(size=10, color="#64748B"),
+        font=dict(size=10, color="#0F172A"),
         bgcolor="#FFFFFF", bordercolor="#334155", borderwidth=1, borderpad=4
     )
 
@@ -179,7 +179,7 @@ def render_traffic_aqi_correlation_chart(traffic_data: dict, location_data: dict
     """
     multiplier = max(float(traffic_data.get("emission_multiplier", 1.0)), 0.1)
     congestion = traffic_data.get("congestion_level", "Unknown")
-    level_color = traffic_data.get("level_color", "#64748B")
+    level_color = traffic_data.get("level_color", "#0F172A")
 
     pollutants = ["PM2.5", "PM10", "NO2", "O3", "CO", "SO2"]
     baseline   = [

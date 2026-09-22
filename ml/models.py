@@ -4,11 +4,15 @@ Supports PyTorch LSTM, PyTorch GRU, and a pure-NumPy inference fallback.
 """
 
 import os
+import sys
 import json
 import pickle
 import zipfile
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data.custom_dataset import get_aqi_category_info
 
 FEATURE_COLUMNS = [
     "aqi", "pm25", "pm10", "no2", "o3", "co", "so2", "temp", "humidity", "traffic_score"
@@ -234,11 +238,18 @@ class NumPyRecurrentForecaster:
     def forward(self, x_seq: np.ndarray, architecture: str = "GRU", horizon: int = 24) -> np.ndarray:
         """
         Executes recurrent inference for the specified architecture and horizon.
+        Uses anchored continuous delta projection to guarantee physical realism
+        and smooth transition from the station's actual sensor baseline.
         Returns: (horizon, 4) unscaled array [aqi, pm25, pm10, no2]
         """
         horizon = min(24, max(1, horizon))
         arch = (architecture or "GRU").upper()
         w = self.lstm_weights if "LSTM" in arch else self.gru_weights
+
+        base_aqi = float(x_seq[-1, 0])
+        base_pm25 = float(x_seq[-1, 1])
+        base_pm10 = float(x_seq[-1, 2])
+        base_no2 = float(x_seq[-1, 3])
 
         # 1. Primary Neural Forward using trained checkpoint
         if w is not None and self.scaler is not None:
@@ -253,44 +264,32 @@ class NumPyRecurrentForecaster:
                 dummy[:, :4] = raw_norm
                 unscaled = self.scaler.inverse_transform(dummy)[:, :4]
 
-                base_aqi = float(x_seq[-1, 0])
-                base_pm25 = float(x_seq[-1, 1])
-                base_pm10 = float(x_seq[-1, 2])
-                base_no2 = float(x_seq[-1, 3])
-
-                preds = unscaled[:horizon].copy()
-                # Ensure physical continuity and valid positive levels
-                for h in range(horizon):
-                    decay = np.exp(-h / 6.0)
-                    preds[h, 0] = max(15.0, preds[h, 0] * (1.0 - 0.35 * decay) + base_aqi * (0.35 * decay))
-                    preds[h, 1] = max(4.0, preds[h, 1] * (1.0 - 0.35 * decay) + base_pm25 * (0.35 * decay))
-                    preds[h, 2] = max(8.0, preds[h, 2] * (1.0 - 0.35 * decay) + base_pm10 * (0.35 * decay))
-                    preds[h, 3] = max(4.0, preds[h, 3] * (1.0 - 0.35 * decay) + base_no2 * (0.35 * decay))
+                # Anchored delta projection: Y_h = y_0 + (unscaled_h - unscaled_0)
+                preds = np.zeros((horizon, 4), dtype=np.float32)
+                for i in range(4):
+                    base_val = [base_aqi, base_pm25, base_pm10, base_no2][i]
+                    min_floor = [10.0, 1.0, 2.0, 1.0][i]
+                    max_ceil = [500.0, 500.0, 600.0, 400.0][i]
+                    delta = unscaled[:horizon, i] - unscaled[0, i]
+                    preds[:, i] = np.clip(base_val + delta, min_floor, max_ceil)
                 return preds
             except Exception as e:
                 print(f"NumPy neural execution warning: {e}, using dynamical model")
 
         # 2. High-fidelity dynamical autoregressive projection
         last_row = x_seq[-1]
-        base_aqi = float(last_row[0])
-        base_pm25 = float(last_row[1])
-        base_pm10 = float(last_row[2])
-        base_no2 = float(last_row[3])
         traffic = float(last_row[9]) if len(last_row) > 9 else 50.0
 
-        preds = np.zeros((horizon, 4))
+        preds = np.zeros((horizon, 4), dtype=np.float32)
         for h in range(1, horizon + 1):
             hour_mod = (h + 12) % 24
-            diurnal_factor = 1.0 + 0.18 * np.sin(2 * np.pi * (hour_mod - 8) / 24)
-            traffic_drift = (traffic - 50.0) * 0.05 * np.exp(-h / 14)
-            lag_damping = 0.96 ** (h / 4)
+            diurnal_factor = 0.08 * np.sin(2 * np.pi * (hour_mod - 8) / 24)
+            traffic_drift = (traffic - 50.0) * 0.03 * np.exp(-h / 14)
+            aqi_h = max(10.0, min(500.0, base_aqi * (1.0 + diurnal_factor) + traffic_drift))
 
-            aqi_h = (base_aqi * lag_damping + (1 - lag_damping) * (base_aqi * diurnal_factor)) + traffic_drift
-            aqi_h = max(15.0, aqi_h)
-
-            pm25_h = max(5.0, base_pm25 * (aqi_h / max(base_aqi, 1.0)))
-            pm10_h = max(10.0, base_pm10 * (aqi_h / max(base_aqi, 1.0)))
-            no2_h = max(5.0, base_no2 * (0.85 + 0.3 * np.sin(2 * np.pi * (hour_mod - 9) / 24)))
+            pm25_h = max(1.0, min(500.0, base_pm25 * (aqi_h / max(base_aqi, 1.0))))
+            pm10_h = max(2.0, min(600.0, base_pm10 * (aqi_h / max(base_aqi, 1.0))))
+            no2_h = max(1.0, min(400.0, base_no2 * (1.0 + 0.15 * np.sin(2 * np.pi * (hour_mod - 9) / 24))))
 
             preds[h - 1] = [aqi_h, pm25_h, pm10_h, no2_h]
         return preds
@@ -401,7 +400,20 @@ class AQIPredictor:
                         target_dummy = np.zeros((24, len(FEATURE_COLUMNS)))
                         target_dummy[:, :4] = out_np
                         unscaled = self.scaler.inverse_transform(target_dummy)[:, :4]
-                        raw_preds = unscaled[:horizon]
+
+                        base_aqi = float(seq[-1, 0])
+                        base_pm25 = float(seq[-1, 1])
+                        base_pm10 = float(seq[-1, 2])
+                        base_no2 = float(seq[-1, 3])
+
+                        preds = np.zeros((horizon, 4), dtype=np.float32)
+                        for i in range(4):
+                            base_val = [base_aqi, base_pm25, base_pm10, base_no2][i]
+                            min_floor = [10.0, 1.0, 2.0, 1.0][i]
+                            max_ceil = [500.0, 500.0, 600.0, 400.0][i]
+                            delta = unscaled[:horizon, i] - unscaled[0, i]
+                            preds[:, i] = np.clip(base_val + delta, min_floor, max_ceil)
+                        raw_preds = preds
                 except Exception as e:
                     print(f"PyTorch inference warning: {e}, falling back to NumPy engine")
                     raw_preds = None
@@ -420,7 +432,8 @@ class AQIPredictor:
         lower_ci = []
         upper_ci = []
         for step_idx, aqi_val in enumerate(aqi_curve, start=1):
-            margin = 3.5 + 2.2 * np.sqrt(step_idx)
+            sigma_h = 1.5 + 1.2 * np.sqrt(step_idx)
+            margin = 1.96 * sigma_h
             lower_ci.append(round(float(max(0.0, aqi_val - margin)), 1))
             upper_ci.append(round(float(min(500.0, aqi_val + margin)), 1))
 
@@ -444,13 +457,24 @@ class AQIPredictor:
         }
 
     def _construct_feature_sequence(self, current: dict, history_df: pd.DataFrame = None) -> np.ndarray:
-        """Constructs a (24, 10) sequence of features leading up to current time."""
-        if history_df is not None and len(history_df) >= 24:
-            cols = [c for c in FEATURE_COLUMNS if c in history_df.columns]
-            if len(cols) == len(FEATURE_COLUMNS):
-                return history_df[FEATURE_COLUMNS].iloc[-24:].to_numpy(dtype=np.float32)
+        """Constructs a (24, 10) sequence of features leading up to current time directly from real dataset."""
+        if history_df is not None and not history_df.empty:
+            hdf = history_df.copy()
+            if len(hdf) < 24:
+                reps = int(np.ceil(24 / max(len(hdf), 1)))
+                hdf = pd.concat([hdf] * reps, ignore_index=True)
+            for c in FEATURE_COLUMNS:
+                if c not in hdf.columns:
+                    hdf[c] = float(current.get(c, 50.0))
+            seq = hdf[FEATURE_COLUMNS].iloc[-24:].to_numpy(dtype=np.float32).copy()
+            if current and "aqi" in current:
+                seq[-1, 0] = float(current.get("aqi", seq[-1, 0]))
+                if "pm25" in current: seq[-1, 1] = float(current.get("pm25", seq[-1, 1]))
+                if "pm10" in current: seq[-1, 2] = float(current.get("pm10", seq[-1, 2]))
+                if "no2" in current: seq[-1, 3] = float(current.get("no2", seq[-1, 3]))
+            return seq
 
-        # Reconstruct realistic 24h lag sequence based on current observation
+
         base_aqi = float(current.get("aqi", 75.0))
         base_pm25 = float(current.get("pm25", 22.0))
         base_pm10 = float(current.get("pm10", 35.0))
@@ -464,35 +488,28 @@ class AQIPredictor:
 
         seq = np.zeros((24, 10), dtype=np.float32)
         for t in range(24):
-            # t=23 is current time, t=0 is 24 hours ago
+            # t=23 is current observation; t=0 is 23 hours prior
             delta_h = 23 - t
             hour_mod = (23 - delta_h) % 24
-            diurnal = 1.0 + 0.15 * np.sin(2 * np.pi * (hour_mod - 8) / 24)
+            diurnal = 1.0 + 0.12 * np.sin(2 * np.pi * (hour_mod - 8) / 24)
+            weight = np.exp(-delta_h / 12.0)
 
-            seq[t, 0] = max(10.0, base_aqi * diurnal * (0.95 + 0.05 * np.sin(t)))
-            seq[t, 1] = max(2.0, base_pm25 * diurnal)
-            seq[t, 2] = max(5.0, base_pm10 * diurnal)
-            seq[t, 3] = max(2.0, base_no2 * (0.9 + 0.2 * np.sin(2 * np.pi * hour_mod / 24)))
-            seq[t, 4] = max(1.0, base_o3 * (0.8 + 0.4 * np.cos(2 * np.pi * hour_mod / 24)))
-            seq[t, 5] = max(10.0, base_co * diurnal)
+            seq[t, 0] = max(10.0, base_aqi * (1.0 - (1.0 - diurnal) * (1.0 - weight * 0.9)))
+            seq[t, 1] = max(2.0, base_pm25 * (1.0 - (1.0 - diurnal) * (1.0 - weight * 0.9)))
+            seq[t, 2] = max(5.0, base_pm10 * (1.0 - (1.0 - diurnal) * (1.0 - weight * 0.9)))
+            seq[t, 3] = max(2.0, base_no2 * (1.0 + 0.15 * np.sin(2 * np.pi * hour_mod / 24) * (1.0 - weight)))
+            seq[t, 4] = max(1.0, base_o3 * (1.0 + 0.25 * np.cos(2 * np.pi * hour_mod / 24) * (1.0 - weight)))
+            seq[t, 5] = max(10.0, base_co)
             seq[t, 6] = max(1.0, base_so2)
-            seq[t, 7] = base_temp - 4.0 * np.cos(2 * np.pi * hour_mod / 24)
-            seq[t, 8] = base_hum + 8.0 * np.cos(2 * np.pi * hour_mod / 24)
-            seq[t, 9] = max(10.0, min(95.0, base_traffic + 12.0 * np.sin(2 * np.pi * hour_mod / 12)))
+            seq[t, 7] = base_temp - 3.0 * np.cos(2 * np.pi * hour_mod / 24) * (1.0 - weight)
+            seq[t, 8] = base_hum + 6.0 * np.cos(2 * np.pi * hour_mod / 24) * (1.0 - weight)
+            seq[t, 9] = max(10.0, min(95.0, base_traffic + 8.0 * np.sin(2 * np.pi * hour_mod / 12) * (1.0 - weight)))
 
+        # Terminal state matches current sensor reading exactly
+        seq[23, :] = [base_aqi, base_pm25, base_pm10, base_no2, base_o3, base_co, base_so2, base_temp, base_hum, base_traffic]
         return seq
 
     @staticmethod
     def _classify_cpcb(aqi: float) -> tuple:
-        if aqi <= 50:
-            return "Good", "Air quality is satisfactory. Outdoor activities are safe for all."
-        elif aqi <= 100:
-            return "Satisfactory", "Minor breathing discomfort to sensitive individuals."
-        elif aqi <= 200:
-            return "Moderate", "Breathing discomfort to people with lung disease such as asthma and heart ailments."
-        elif aqi <= 300:
-            return "Poor", "Breathing discomfort to most people on prolonged exposure."
-        elif aqi <= 400:
-            return "Very Poor", "Respiratory illness to the people on prolonged exposure. Avoid strenuous outdoor activity."
-        else:
-            return "Severe", "Healthy people may develop respiratory issues. Serious health impacts on people with heart/lung disease."
+        info = get_aqi_category_info(aqi)
+        return info.get("label", "Satisfactory / Moderate"), info.get("severity", "Minor breathing discomfort to sensitive individuals.")

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Module 1 — Location and AQI Real-Time Data Integration — Dark Theme
 """
 
@@ -9,7 +9,7 @@ from data.custom_dataset import load_pune_data
 # Direct Pune Smart City Dataset Ingestion
 LOCATIONS_DATA = load_pune_data()
 
-from data.demo_data import (
+from data.custom_dataset import (
     HEALTH_PROFILES, get_traffic_data,
     get_aqi_category_info, calculate_corridor_route_aqi
 )
@@ -54,10 +54,10 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .stApp { background-color: #F8FAFC !important; }
 section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
-section[data-testid="stSidebar"] * { color: #64748B !important; }
+section[data-testid="stSidebar"] * { color: #0F172A !important; }
 .block-container { padding-top: 1.8rem; padding-bottom: 2rem; max-width: 1380px; }
 [data-testid="stMetric"] { background: #FFFFFF !important; border: 1px solid #334155 !important; border-radius: 8px; }
-[data-testid="stMetricLabel"] { color: #64748B !important; }
+[data-testid="stMetricLabel"] { color: #0F172A !important; }
 [data-testid="stMetricValue"] { color: #0F172A !important; }
 .stButton > button { background: #FFFFFF !important; border: 1px solid #334155 !important; color: #334155 !important; border-radius: 5px; font-weight: 600; }
 .stButton > button:hover { background: #EFF6FF !important; border-color: #3B82F6 !important; color: #1D4ED8 !important; }
@@ -69,7 +69,7 @@ details summary { color: #334155 !important; font-weight: 600; font-size: 0.88re
 [data-testid="stAlert"] { background: #EFF6FF !important; border: 1px solid #BFDBFE !important; color: #1D4ED8 !important; }
 hr { border-color: #334155 !important; }
 h1, h2, h3, h4 { color: #0F172A !important; }
-[data-testid="stCaptionContainer"] { color: #64748B !important; }
+[data-testid="stCaptionContainer"] { color: #0F172A !important; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #F8FAFC; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 </style>
 """, unsafe_allow_html=True)
@@ -145,7 +145,7 @@ with col_gps:
             st.session_state.gps_status = "Ready — Browser GPS Hook Active"
             st.rerun()
     st.markdown(
-        f"<div style='font-size:0.75rem; color:#64748B; margin-top:5px;'>"
+        f"<div style='font-size:0.75rem; color:#0F172A; margin-top:5px;'>"
         f"Status: <b style='color:#16A34A;'>{st.session_state.gps_status}</b></div>",
         unsafe_allow_html=True
     )
@@ -216,12 +216,12 @@ if not same_location:
     cards_html = textwrap.dedent(f"""
 <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
 <div style="flex:1; min-width:170px; background:#FFFFFF; border:1px solid #334155; border-left:4px solid #16A34A; border-radius:6px; padding:10px 14px;">
-<div style="font-size:0.65rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.8px;">Origin Station</div>
+<div style="font-size:0.65rem; font-weight:700; color:#0F172A; text-transform:uppercase; letter-spacing:0.8px;">Origin Station</div>
 <div style="font-size:0.88rem; font-weight:700; color:#0F172A; margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{st.session_state.route_source}</div>
 <div style="font-size:0.75rem; color:{_src_cat['color']}; font-weight:600;">AQI {int(d['aqi'])} — {_src_cat['label']}</div>
 </div>
 <div style="flex:1; min-width:170px; background:#FFFFFF; border:1px solid #334155; border-left:4px solid #DC2626; border-radius:6px; padding:10px 14px;">
-<div style="font-size:0.65rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.8px;">Destination Station</div>
+<div style="font-size:0.65rem; font-weight:700; color:#0F172A; text-transform:uppercase; letter-spacing:0.8px;">Destination Station</div>
 <div style="font-size:0.88rem; font-weight:700; color:#0F172A; margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{st.session_state.route_destination}</div>
 <div style="font-size:0.75rem; color:{_dst_cat['color']}; font-weight:600;">AQI {int(d_dst['aqi'])} — {_dst_cat['label']}</div>
 </div>
@@ -232,9 +232,9 @@ if not same_location:
 </div>
 <div style="display:flex; align-items:baseline; gap:8px; margin:3px 0;">
 <span style="font-size:1.60rem; font-weight:900; color:{route_info['color']}; line-height:1;">{route_info['route_aqi']}</span>
-<span style="font-size:0.72rem; color:#475569; font-weight:500;">Dominant: <b>{route_info['dominant_pollutant']}</b></span>
+<span style="font-size:0.72rem; color:#1E293B; font-weight:500;">Dominant: <b>{route_info['dominant_pollutant']}</b></span>
 </div>
-<div style="font-size:0.70rem; color:#64748B;">Corridor Length: <b>{route_info['distance_km']} km</b> &nbsp;•&nbsp; Traffic: <b>{route_info['congestion_level']}</b></div>
+<div style="font-size:0.70rem; color:#0F172A;">Corridor Length: <b>{route_info['distance_km']} km</b> &nbsp;•&nbsp; Traffic: <b>{route_info['congestion_level']}</b></div>
 </div>
 </div>
 <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.75rem; color:#334155;">
@@ -242,14 +242,14 @@ if not same_location:
 <div>
 <b>📐 Corridor Multi-Factor Fusion:</b>&nbsp;
 Base Chemical Pollutants (<span style="color:#0369A1; font-weight:700;">{route_info['base_aqi']}</span>)
-<span style="color:#64748B;">×</span>
+<span style="color:#0F172A;">×</span>
 Traffic Penalty (<span style="color:#EA580C; font-weight:700;">+{route_info['traffic_penalty_pct']}%</span>)
-<span style="color:#64748B;">×</span>
+<span style="color:#0F172A;">×</span>
 Weather Trapping (<span style="color:#7C3AED; font-weight:700;">{route_info['weather_impact_pct']:+.1f}%</span>)
-<span style="color:#64748B;">=</span>
+<span style="color:#0F172A;">=</span>
 <b style="color:{route_info['color']}; font-size:0.85rem;">{route_info['route_aqi']} AQI</b>
 </div>
-<div style="font-size:0.70rem; color:#64748B;">Corridor Flow: {route_info['avg_speed_kmh']} km/h &nbsp;|&nbsp; RH: {route_info['avg_humidity']}% &nbsp;|&nbsp; Temp: {route_info['avg_temp']}°C</div>
+<div style="font-size:0.70rem; color:#0F172A;">Corridor Flow: {route_info['avg_speed_kmh']} km/h &nbsp;|&nbsp; RH: {route_info['avg_humidity']}% &nbsp;|&nbsp; Temp: {route_info['avg_temp']}°C</div>
 </div>
 {waypoint_html}
 </div>
@@ -331,16 +331,16 @@ st.markdown(
             <div style="font-size:1.65rem; font-weight:800; color:{traffic['level_color']}; line-height:1;">
                 {traffic['congestion_level']}
             </div>
-            <div style="font-size:0.76rem; color:#64748B; margin-top:4px;">
+            <div style="font-size:0.76rem; color:#0F172A; margin-top:4px;">
                 Source: {traffic['api_source']}
             </div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-            <div style="font-size:0.72rem; color:#64748B;">Congestion Score</div>
+            <div style="font-size:0.72rem; color:#0F172A;">Congestion Score</div>
             <div style="font-size:2.0rem; font-weight:800; color:{traffic['level_color']}; line-height:1;">
                 {traffic['congestion_score']}<span style="font-size:0.9rem; font-weight:500;">/100</span>
             </div>
-            <div style="font-size:0.70rem; color:#64748B;">Peak Hours: {traffic['peak_hour']}</div>
+            <div style="font-size:0.70rem; color:#0F172A;">Peak Hours: {traffic['peak_hour']}</div>
         </div>
     </div>
     """,
@@ -361,14 +361,14 @@ for col, title, value, sub, color in traffic_metrics:
             f"""
             <div style="background:#FFFFFF; border:1px solid #334155; border-top:3px solid {color};
                         border-radius:8px; padding:14px 16px;">
-                <div style="font-size:0.68rem; font-weight:700; color:#64748B;
+                <div style="font-size:0.68rem; font-weight:700; color:#0F172A;
                             text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px;">
                     {title}
                 </div>
                 <div style="font-size:1.45rem; font-weight:800; color:{color}; margin-bottom:2px;">
                     {value}
                 </div>
-                <div style="font-size:0.70rem; color:#64748B;">{sub}</div>
+                <div style="font-size:0.70rem; color:#0F172A;">{sub}</div>
             </div>
             """,
             unsafe_allow_html=True
@@ -381,7 +381,7 @@ seg_col, chart_col = st.columns([1.0, 1.8])
 
 with seg_col:
     st.markdown(
-        "<div style='font-size:0.75rem; font-weight:700; color:#64748B; "
+        "<div style='font-size:0.75rem; font-weight:700; color:#0F172A; "
         "text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;'>Road Segment Status</div>",
         unsafe_allow_html=True
     )

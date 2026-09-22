@@ -1,5 +1,4 @@
 import requests
-import random
 from datetime import datetime
 
 def fetch_live_weather(lat: float, lon: float) -> dict:
@@ -38,14 +37,29 @@ def fetch_live_weather(lat: float, lon: float) -> dict:
     except Exception as e:
         print(f"Weather API error: {e}")
     
-    # Fallback
-    return {
-        "temp": 28.5,
-        "humidity": 60,
-        "wind_speed": 10.2,
-        "wind_deg": "NW (315 deg)",
-        "weather_desc": "Data Unavailable (Fallback)"
-    }
+    # Fallback to nearest Pune station telemetry
+    try:
+        from data.custom_dataset import load_pune_data
+        pune_data = load_pune_data()
+        best_loc = min(
+            pune_data.values(),
+            key=lambda s: (s.get("lat", 18.5) - lat)**2 + (s.get("lon", 73.8) - lon)**2
+        )
+        return {
+            "temp": float(best_loc.get("temp", 28.5)),
+            "humidity": float(best_loc.get("humidity", 60.0)),
+            "wind_speed": float(best_loc.get("wind_speed", 10.2)),
+            "wind_deg": str(best_loc.get("wind_deg", "NW (315 deg)")),
+            "weather_desc": str(best_loc.get("weather_desc", "Partly Cloudy"))
+        }
+    except Exception:
+        return {
+            "temp": 28.5,
+            "humidity": 60,
+            "wind_speed": 10.2,
+            "wind_deg": "NW (315 deg)",
+            "weather_desc": "Data Unavailable"
+        }
 
 
 def fetch_live_aqi(lat: float, lon: float) -> dict:
@@ -98,18 +112,45 @@ def fetch_live_aqi(lat: float, lon: float) -> dict:
     except Exception as e:
         print(f"AQI API error: {e}")
         
-    # Fallback to a mock location based on lat/lon
-    return {
-        "aqi": random.randint(40, 150),
-        "dominant_pollutant": "PM2.5",
-        "pm25": random.uniform(15.0, 75.0),
-        "pm10": random.uniform(30.0, 120.0),
-        "no2": random.uniform(10.0, 40.0),
-        "o3": random.uniform(20.0, 50.0),
-        "co": random.uniform(0.5, 2.0),
-        "so2": random.uniform(5.0, 15.0),
-        "stations": []
-    }
+    # Fallback to nearest Pune station from preprocessed Pune dataset
+    try:
+        from data.custom_dataset import load_pune_data
+        pune_data = load_pune_data()
+        best_loc = min(
+            pune_data.values(),
+            key=lambda s: (s.get("lat", 18.5) - lat)**2 + (s.get("lon", 73.8) - lon)**2
+        )
+        return {
+            "aqi": float(best_loc.get("aqi", 65.0)),
+            "dominant_pollutant": best_loc.get("dominant_pollutant", "PM2.5"),
+            "pm25": float(best_loc.get("pm25", 28.0)),
+            "pm10": float(best_loc.get("pm10", 45.0)),
+            "no2": float(best_loc.get("no2", 32.0)),
+            "o3": float(best_loc.get("o3", 18.0)),
+            "co": float(best_loc.get("co", 1.1)),
+            "so2": float(best_loc.get("so2", 8.0)),
+            "stations": [
+                {
+                    "name": best_loc.get("city", "Pune Station"),
+                    "lat": best_loc.get("lat", lat),
+                    "lon": best_loc.get("lon", lon),
+                    "aqi": best_loc.get("aqi", 65.0),
+                    "status": "Active"
+                }
+            ]
+        }
+    except Exception:
+        return {
+            "aqi": 65.0,
+            "dominant_pollutant": "PM2.5",
+            "pm25": 28.0,
+            "pm10": 45.0,
+            "no2": 32.0,
+            "o3": 18.0,
+            "co": 1.1,
+            "so2": 8.0,
+            "stations": []
+        }
 
 def get_location_data(lat: float, lon: float) -> dict:
     """

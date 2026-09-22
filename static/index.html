@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirSense — AI Environmental Intelligence & Predictive Platform</title>
+  <meta name="description" content="AI-Powered Environmental Intelligence System for Air Quality Prediction and Smart Mobility Recommendations. Infosys Springboard Project Milestones 1 & 2.">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet GIS & Heatmap CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Custom Design System Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css?v=3.2">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ── Left Sidebar Navigation ────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>AirSense AI</h1>
+          <span>Environmental Intel</span>
+        </div>
+      </div>
+
+      <!-- Live Mesh Heartbeat Pulse -->
+      <div class="system-pulse">
+        <span class="pulse-dot"></span>
+        <span>FastAPI Engine: Active | 10 Nodes</span>
+      </div>
+
+      <!-- Nav Items Grouped by Milestone -->
+      <nav class="nav-menu">
+        <div style="font-size:0.68rem; text-transform:uppercase; color:#1e293b; font-weight:700; padding:8px 14px 4px; letter-spacing:0.06em;">
+          Core Hub
+        </div>
+
+        <a class="nav-item active" data-tab="overview" id="nav-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="9" x="3" y="3" rx="1"/>
+            <rect width="7" height="5" x="14" y="3" rx="1"/>
+            <rect width="7" height="9" x="14" y="12" rx="1"/>
+            <rect width="7" height="5" x="3" y="16" rx="1"/>
+          </svg>
+          <span>Air Quality Dashboard</span>
+          <span class="nav-badge">Executive</span>
+        </a>
+
+        <div style="font-size:0.68rem; text-transform:uppercase; color:#1e293b; font-weight:700; padding:12px 14px 4px; letter-spacing:0.06em;">
+          Real-Time AQI
+        </div>
+
+        <a class="nav-item" data-tab="module1" id="nav-module1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span>Location & AQI Data</span>
+          <span class="nav-badge">M1</span>
+        </a>
+
+        <div style="font-size:0.68rem; text-transform:uppercase; color:#1e293b; font-weight:700; padding:12px 14px 4px; letter-spacing:0.06em;">
+          Predictive AI
+        </div>
+
+        <a class="nav-item" data-tab="module2_forecast" id="nav-module2-forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>GRU Predictive Forecast</span>
+          <span class="nav-badge">M2</span>
+        </a>
+
+        <a class="nav-item" data-tab="module2_kriging" id="nav-module2-kriging">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+            <path d="M2 12h20"/>
+          </svg>
+          <span>Spatial Interpolation</span>
+          <span class="nav-badge">Kriging</span>
+        </a>
+
+        <a class="nav-item" data-tab="module2_route" id="nav-module2-route">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+          <span>Route Exposure Estimator</span>
+          <span class="nav-badge">Mobility</span>
+        </a>
+
+        <a class="nav-item" data-tab="module2_retrain" id="nav-module2-retrain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span>FastAPI & Retraining</span>
+          <span class="nav-badge">Service</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="avatar-initials">HK</div>
+          <div class="user-profile-info">
+            <div class="user-name">Developed by</div>
+            <div class="user-role">Harika.K</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main Workspace ────────────────────────────────────────────────── -->
+    <div class="main-wrapper">
+
+      <!-- Top Header Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2 class="module-title-h2" id="current-module-title">Air Quality Dashboard — Real-time AQI Monitoring & 24-hour Forecast</h2>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Live Station Selector -->
+          <div class="station-dropdown-container">
+            <span class="station-label">Monitoring Node:</span>
+            <select class="custom-select" id="global-station-select"></select>
+          </div>
+
+          <!-- Health Profile Dropdown -->
+          <div class="station-dropdown-container">
+            <span class="station-label" style="display:flex; align-items:center; gap:5px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+              </svg>
+              User Profile:
+            </span>
+            <select class="custom-select" id="header-health-profile-select">
+              <option value="General User">General User</option>
+              <option value="Asthmatic / Respiratory">Asthmatic / Respiratory</option>
+              <option value="Elderly (60+ Years)">Elderly (60+ Years)</option>
+              <option value="Child (Under 12 Years)">Child (Under 12 Years)</option>
+            </select>
+          </div>
+
+          <!-- Live Clock -->
+          <div style="font-size:0.8rem; color:#1e293b; font-family:'Outfit', sans-serif; font-weight:600;" id="header-live-clock">
+            --:--:--
+          </div>
+
+          <!-- FastAPI Swagger Docs Link -->
+          <a href="/docs" target="_blank" class="api-docs-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"/>
+              <polyline points="8 6 2 12 8 18"/>
+            </svg>
+            <span>FastAPI Docs</span>
+          </a>
+        </div>
+
+      </header>
+
+      <!-- Content Views Area -->
+      <main class="content-area">
+
+        <!-- ===================================================================
+             TAB 1: AIR QUALITY DASHBOARD (Matching Sample Dashboard Page 4)
+             =================================================================== -->
+        <section class="tab-content active" id="tab-overview">
+
+          <!-- 4 Executive KPI Summary Cards (From PDF Spec Page 4) -->
+          <div class="kpi-summary-grid">
+            <div class="kpi-summary-card" style="--kpi-accent: #38bdf8;">
+              <div class="kpi-card-title">
+                <span>Stations Active</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="kpi-card-val" id="kpi-active-stations">10</div>
+              <div class="kpi-card-sub" id="kpi-active-stations-sub">Pune SmartCity Mesh Cluster</div>
+            </div>
+
+            <div class="kpi-summary-card" style="--kpi-accent: #f59e0b;">
+              <div class="kpi-card-title">
+                <span>AQI Alerts Today</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="kpi-card-val" id="kpi-alerts-today">2</div>
+              <div class="kpi-card-sub">Moderate / Sensitive breaches</div>
+            </div>
+
+            <div class="kpi-summary-card" style="--kpi-accent: #10b981;">
+              <div class="kpi-card-title">
+                <span>Forecast Accuracy</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="kpi-card-val" id="kpi-forecast-accuracy">90.2%</div>
+              <div class="kpi-card-sub">24-hour recurrent GRU window</div>
+            </div>
+
+            <div class="kpi-summary-card" style="--kpi-accent: #f59e0b;">
+              <div class="kpi-card-title">
+                <span>Avg City AQI</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div class="kpi-card-val" id="kpi-avg-aqi">74.2</div>
+              <div class="kpi-card-sub" id="kpi-avg-category">Satisfactory / Moderate Category</div>
+            </div>
+          </div>
+
+          <!-- Central Grid: AQI Levels by Station Bar Chart + Category Breakdown Widget -->
+          <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:20px; margin-bottom: 24px;">
+
+            <!-- AQI Levels by Station Chart -->
+            <div class="glass-card">
+              <div class="card-title-row" style="margin-bottom:12px;">
+                <div>
+                  <span class="card-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    AQI Levels by Station (Current Reading)
+                  </span>
+                  <span class="card-subtitle" style="display:block; margin-top:2px;">Live comparative telemetry across Pune monitoring stations</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="metric-filter-pill active" data-metric="aqi" id="btn-filter-aqi" style="padding:3px 10px; font-size:0.75rem; border-radius:12px; border:1px solid #bfdbfe; background:#eff6ff; color:#2563eb; font-weight:700; cursor:pointer;">AQI</button>
+                  <button type="button" class="metric-filter-pill" data-metric="pm25" id="btn-filter-pm25" style="padding:3px 10px; font-size:0.75rem; border-radius:12px; border:1px solid var(--border-subtle); background:transparent; color:#1e293b; font-weight:600; cursor:pointer;">PM2.5</button>
+                  <button type="button" class="metric-filter-pill" data-metric="pm10" id="btn-filter-pm10" style="padding:3px 10px; font-size:0.75rem; border-radius:12px; border:1px solid var(--border-subtle); background:transparent; color:#1e293b; font-weight:600; cursor:pointer;">PM10</button>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 330px;">
+                <canvas id="station-comparison-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- AQI Category Breakdown (From PDF Spec Page 4) -->
+            <div class="glass-card">
+              <div class="card-title-row">
+                <span class="card-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  AQI Category Breakdown
+                </span>
+                <span class="card-subtitle">CPCB Scale Distribution</span>
+              </div>
+
+              <div class="category-breakdown-list" id="category-breakdown-container">
+                <div class="cat-breakdown-row">
+                  <div class="cat-label-group">
+                    <span class="legend-dot" style="background:#10b981;"></span>
+                    <span>Good (0–50)</span>
+                  </div>
+                  <span class="cat-badge-count" id="cat-count-good" style="color:#10b981;">0 stations</span>
+                </div>
+
+                <div class="cat-breakdown-row">
+                  <div class="cat-label-group">
+                    <span class="legend-dot" style="background:#f59e0b;"></span>
+                    <span>Moderate (51–100)</span>
+                  </div>
+                  <span class="cat-badge-count" id="cat-count-moderate" style="color:#f59e0b;">8 stations</span>
+                </div>
+
+                <div class="cat-breakdown-row">
+                  <div class="cat-label-group">
+                    <span class="legend-dot" style="background:#f97316;"></span>
+                    <span>Unhealthy for Sensitive (101–150)</span>
+                  </div>
+                  <span class="cat-badge-count" id="cat-count-sensitive" style="color:#f97316;">2 stations</span>
+                </div>
+
+                <div class="cat-breakdown-row">
+                  <div class="cat-label-group">
+                    <span class="legend-dot" style="background:#ef4444;"></span>
+                    <span>Unhealthy / Poor (151–200)</span>
+                  </div>
+                  <span class="cat-badge-count" id="cat-count-poor" style="color:#ef4444;">0 stations</span>
+                </div>
+
+                <div class="cat-breakdown-row">
+                  <div class="cat-label-group">
+                    <span class="legend-dot" style="background:#8b5cf6;"></span>
+                    <span>Very Unhealthy / Hazardous (200+)</span>
+                  </div>
+                  <span class="cat-badge-count" id="cat-count-hazardous" style="color:#8b5cf6;">0 stations</span>
+                </div>
+              </div>
+
+              <!-- Real-time Hero AQI Quick Snapshot -->
+              <div style="margin-top:16px; padding:12px 14px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:0.72rem; color:#1e293b;">Focused Station Reading</div>
+                  <div style="font-size:1.1rem; font-weight:700;" id="hero-station-name-mini">Bopadi Square</div>
+                </div>
+                <div style="font-size:1.8rem; font-weight:800; font-family:'Outfit',sans-serif; color:#f59e0b;" id="hero-aqi-value-mini">78 <span style="font-size:0.75rem; color:#1e293b;">AQI</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Full Width: Recent AQI Predictions vs Actual Validation Table (PDF Page 4) -->
+          <div class="glass-card" style="margin-bottom:24px;">
+            <div class="card-title-row">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Recent AQI Predictions vs Actual Ground Truth Telemetry
+              </span>
+              <span class="card-subtitle">Recurrent model validation across monitored Pune nodes</span>
+            </div>
+
+            <div class="services-table-wrapper">
+              <table class="pred-actual-table">
+                <thead>
+                  <tr>
+                    <th>Monitoring Station</th>
+                    <th>City</th>
+                    <th>Predicted AQI</th>
+                    <th>Actual AQI</th>
+                    <th>Dominant Pollutant</th>
+                    <th>Health Category</th>
+                    <th>Model Accuracy</th>
+                  </tr>
+                </thead>
+                <tbody id="pred-actual-table-body">
+                  <!-- Populated dynamically via /api/predictions-vs-actual -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 24-Hour Sequential Telemetry Trend (Full Width) -->
+          <div class="glass-card" style="padding:20px; margin-bottom:24px;">
+            <div class="card-title-row" style="margin-bottom:14px;">
+              <div>
+                <span class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                  24-Hour Sequential Telemetry Trend & Continuous Observation
+                </span>
+                <span class="card-subtitle" style="display:block; margin-top:2px;">Continuous environmental telemetry stream across monitored urban stations</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.75rem; padding:4px 10px; border-radius:12px; background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.25); font-weight:600;">● Continuous Feed</span>
+              </div>
+            </div>
+            <div class="chart-container" style="height:360px; width:100%;">
+              <canvas id="historical-trend-chart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             TAB 2: MILESTONE 1 — LOCATION & AQI REAL-TIME DATA INTEGRATION (Weeks 1–2)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module1">
+
+          <!-- Milestone 1 Header -->
+          <div class="glass-card" style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+              <div>
+                <h3 style="font-family:'Outfit',sans-serif; font-size:1.35rem; font-weight:700; margin-top:2px;">
+                  Location Capture, Multi-Pollutant Feeds & Meteorology Fusion
+                </h3>
+                <span style="font-size:0.78rem; color:#1e293b;" id="m1-station-coords">
+                  Target Station: <strong id="m1-station-name" style="color:var(--text-primary);">Bopadi Square</strong> (Pune SmartCity Dataset)
+                </span>
+              </div>
+
+              <!-- GPS User Location Consent Button -->
+              <div style="display:flex; gap:12px;">
+                <button class="btn-action btn-primary" id="btn-gps-locate">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                  Detect Nearest Station via GPS
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Focused Station Gauge & Meteorological Conditions -->
+          <div class="hero-grid" style="margin-bottom:24px;">
+            <!-- Hero AQI Ambient Card -->
+            <div class="glass-card hero-aqi-card">
+              <div class="hero-header">
+                <div>
+                  <h3 class="hero-location-name" id="hero-station-name">Bopadi Square</h3>
+                  <span class="hero-city-tag">Pune SmartCity Mesh Node</span>
+                </div>
+                <span class="hero-badge" id="hero-aqi-badge">MODERATE</span>
+              </div>
+
+              <div class="hero-aqi-value-container">
+                <span class="hero-aqi-num" id="hero-aqi-value">78</span>
+                <span class="hero-aqi-unit">AQI index (CPCB standard)</span>
+              </div>
+
+              <div class="hero-footer">
+                <div>Dominant: <strong id="hero-dominant-pollutant" style="color:var(--text-primary);">PM2.5</strong></div>
+                <div>Traffic: <strong id="hero-traffic-impact" style="color:var(--text-primary);">Moderate (48/100)</strong></div>
+              </div>
+            </div>
+
+            <!-- Meteorological Fusion Cards -->
+            <div class="hero-metrics-container">
+              <div class="metrics-row">
+                <div class="metric-card">
+                  <span class="metric-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
+                    Ambient Temp
+                  </span>
+                  <div class="metric-value"><span id="metric-temp">28.4</span><span class="metric-unit">°C</span></div>
+                  <span class="metric-subtext">Optimal Sensor Band</span>
+                </div>
+
+                <div class="metric-card">
+                  <span class="metric-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    Rel Humidity
+                  </span>
+                  <div class="metric-value"><span id="metric-humidity">54</span><span class="metric-unit">%</span></div>
+                  <span class="metric-subtext">Hygroscopic Stable</span>
+                </div>
+
+                <div class="metric-card">
+                  <span class="metric-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    Acoustic Noise
+                  </span>
+                  <div class="metric-value"><span id="metric-sound">68.2</span><span class="metric-unit">dB</span></div>
+                  <span class="metric-subtext">Urban Ambient Sound</span>
+                </div>
+
+                <div class="metric-card">
+                  <span class="metric-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Air Pressure
+                  </span>
+                  <div class="metric-value"><span id="metric-pressure">1.013</span><span class="metric-unit">bar</span></div>
+                  <span class="metric-subtext">Atmospheric Inversion</span>
+                </div>
+              </div>
+
+              <!-- Traffic & Acoustic Correlation -->
+              <div class="glass-card" style="flex:1; padding:16px;">
+                <div class="card-title-row" style="margin-bottom:8px;">
+                  <span class="card-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    Junction Traffic Congestion & Emission Multiplier
+                  </span>
+                  <span class="card-subtitle">Real junction telemetry from sensor telemetry</span>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:8px;">
+                  <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
+                    <span style="font-size:0.72rem; color:#1e293b;">Congestion Score</span>
+                    <div style="font-size:1.4rem; font-weight:700; color:#f59e0b;" id="m1-traffic-score">48 / 100</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
+                    <span style="font-size:0.72rem; color:#1e293b;">Average Vehicle Speed</span>
+                    <div style="font-size:1.4rem; font-weight:700; color:#0284c7;" id="m1-traffic-speed">27.0 km/h</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
+                    <span style="font-size:0.72rem; color:#1e293b;">Emission Penalty Multiplier</span>
+                    <div style="font-size:1.4rem; font-weight:700; color:#10b981;" id="m1-traffic-multiplier">1.25x</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Pollutant Detailed Telemetry Grid -->
+          <h4 style="font-size:0.92rem; font-weight:600; color:#1e293b; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.05em;">
+            Multi-Pollutant Sensor Telemetry (CPCB Breakpoint Sub-Indices)
+          </h4>
+
+          <div class="pollutant-grid">
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">PM2.5</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(239, 68, 68, 0.15); color:#ef4444;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-pm25">34.5</span>
+                <span class="pollutant-unit">µg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-pm25" style="width:55%; background:#f59e0b;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 24h: 60.0 µg/m³</span>
+            </div>
+
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">PM10</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-pm10">72.1</span>
+                <span class="pollutant-unit">µg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-pm10" style="width:72%; background:#f59e0b;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 24h: 100.0 µg/m³</span>
+            </div>
+
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">NO2</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-no2">28.4</span>
+                <span class="pollutant-unit">µg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-no2" style="width:35%; background:#10b981;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 24h: 80.0 µg/m³</span>
+            </div>
+
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">Ozone (O3)</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-o3">18.2</span>
+                <span class="pollutant-unit">µg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-o3" style="width:18%; background:#10b981;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 8h: 100.0 µg/m³</span>
+            </div>
+
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">Carbon Monoxide (CO)</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-co">1.1</span>
+                <span class="pollutant-unit">mg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-co" style="width:40%; background:#10b981;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 8h: 2.0 mg/m³</span>
+            </div>
+
+            <div class="pollutant-card">
+              <div class="pollutant-name-row">
+                <span class="pollutant-name">Sulfur Dioxide (SO2)</span>
+                <span class="pollutant-subindex-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">Sub-index</span>
+              </div>
+              <div class="pollutant-val-row">
+                <span class="pollutant-val" id="val-so2">6.5</span>
+                <span class="pollutant-unit">µg/m³</span>
+              </div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-so2" style="width:12%; background:#10b981;"></div></div>
+              <span style="font-size:0.7rem; color:#1e293b;">CPCB Max 24h: 80.0 µg/m³</span>
+            </div>
+          </div>
+
+          <!-- User Profile Management & Health Sensitivity Settings (Weeks 1–2) -->
+          <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-title-row">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                Health Profile Sensitivity Settings & Personalized Thresholds
+              </span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.76rem; color:#1e293b;">Active Profile:</span>
+                <select class="custom-select" id="health-profile-select"></select>
+              </div>
+            </div>
+
+            <div style="padding:16px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid var(--border-subtle); font-size:0.86rem;" id="health-profile-banner">
+              <strong>General User:</strong> Standard adult without respiratory or cardiovascular sensitivities.
+            </div>
+          </div>
+
+          <!-- ── M1 Interactive Station Source / Destination Map ──────────── -->
+          <div class="glass-card" style="margin-bottom:24px;">
+            <div class="card-title-row" style="margin-bottom:16px;">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                Interactive Pune Node Map — Source &amp; Destination Station Picker
+              </span>
+              <span class="card-subtitle">Click a marker and choose its role, or use the dropdowns below</span>
+            </div>
+
+            <!-- Source / Destination Dropdowns -->
+            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:end; margin-bottom:16px;">
+              <div class="input-field-group">
+                <label for="m1-source-select">
+                  <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e; margin-right:6px;"></span>
+                  Origin Station
+                </label>
+                <select class="custom-select" id="m1-source-select" style="width:100%;">
+                  <!-- populated by JS -->
+                </select>
+              </div>
+              <div class="input-field-group">
+                <label for="m1-dest-select">
+                  <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; margin-right:6px;"></span>
+                  Destination Station
+                </label>
+                <select class="custom-select" id="m1-dest-select" style="width:100%;">
+                  <!-- populated by JS -->
+                </select>
+              </div>
+              <button class="btn-action btn-primary" id="btn-m1-compute-route" style="white-space:nowrap; padding:10px 18px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                Compute Route
+              </button>
+            </div>
+
+            <!-- Legend -->
+            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:12px; font-size:0.75rem; color:#1e293b;">
+              <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#22c55e; margin-right:5px; vertical-align:middle;"></span>Origin (S)</span>
+              <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ef4444; margin-right:5px; vertical-align:middle;"></span>Destination (D)</span>
+              <span><span style="display:inline-block; width:28px; height:4px; background:#2563eb; margin-right:5px; vertical-align:middle; border-radius:2px;"></span>Route Path</span>
+              <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#059669; margin-right:5px; vertical-align:middle;"></span>Good AQI (0–50)</span>
+              <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#d97706; margin-right:5px; vertical-align:middle;"></span>Moderate (51–100)</span>
+              <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ea580c; margin-right:5px; vertical-align:middle;"></span>Sensitive (101–150)</span>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="m1-station-map" class="leaflet-map" style="height:420px; border-radius:10px; border:1px solid var(--border-subtle);"></div>
+
+            <!-- Route Info Banner (shown after compute) -->
+            <div id="m1-route-info" style="display:none; margin-top:14px; padding:14px 18px; background:rgba(56,189,248,0.07); border:1px solid rgba(56,189,248,0.25); border-radius:8px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                  <div style="font-size:0.72rem; color:#1e293b; text-transform:uppercase; letter-spacing:0.06em;">Selected Journey</div>
+                  <div style="font-size:1.05rem; font-weight:700; color:#0f172a; margin-top:2px;" id="m1-route-label">--</div>
+                </div>
+                <div style="display:flex; gap:24px;">
+                  <div style="text-align:center;">
+                    <div style="font-size:0.7rem; color:#1e293b;">Origin AQI</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#22c55e;" id="m1-src-aqi">--</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-size:0.7rem; color:#1e293b;">Destination AQI</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#ef4444;" id="m1-dst-aqi">--</div>
+                  </div>
+                  <div style="text-align:center;">
+                    <div style="font-size:0.7rem; color:#1e293b;">AQI Differential</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#0284c7;" id="m1-aqi-diff">--</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             TAB 3: MILESTONE 2 — PREDICTIVE AQI FORECASTING (Weeks 3–4)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module2_forecast">
+
+          <!-- Forecasting Controls Bar -->
+          <div class="forecast-controls-bar">
+            <!-- Model Architecture -->
+            <div class="control-group">
+              <span class="control-label">Standardized Architecture:</span>
+              <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(37,99,235,0.12); border:1px solid rgba(59,130,246,0.35); padding:6px 14px; border-radius:6px; color:#0284c7; font-size:0.82rem; font-weight:700;">
+                <span class="pulse-dot" style="width:7px; height:7px; background:#0284c7; border-radius:50%;"></span>
+                PyTorch GRU (Gated Recurrent Unit)
+              </div>
+            </div>
+
+            <!-- Horizon Hours -->
+            <div class="control-group">
+              <span class="control-label">Forecast Horizon:</span>
+              <div class="btn-group">
+                <button class="btn-toggle" data-horizon="6">6 Hours</button>
+                <button class="btn-toggle" data-horizon="12">12 Hours</button>
+                <button class="btn-toggle active" data-horizon="24">24 Hours</button>
+              </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn-action btn-primary" id="btn-generate-forecast" style="margin-left:auto;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Run Recurrent Forecast
+            </button>
+          </div>
+
+          <!-- Forecast Results Layout -->
+          <div class="forecast-results-grid">
+            <!-- Stats Column -->
+            <div class="forecast-stats-box">
+              <div class="glass-card">
+                <div class="card-subtitle" id="forecast-endpoint-label">Projected Endpoint AQI (+24h)</div>
+                <div style="font-size:3rem; font-weight:800; font-family:'Outfit',sans-serif; color:#0284c7; margin:6px 0;" id="forecast-endpoint-val">
+                  84
+                </div>
+                <span class="hero-badge" id="forecast-endpoint-badge" style="background:rgba(56,189,248,0.15); color:#0284c7; border-color:rgba(56,189,248,0.3);">MODERATE</span>
+
+                <div style="margin-top:16px; border-top:1px solid var(--border-subtle); padding-top:12px;">
+                  <span style="font-size:0.75rem; color:#1e293b; display:block; margin-bottom:4px;">Health Recommendation:</span>
+                  <p style="font-size:0.8rem; line-height:1.4; color:#0f172a;" id="forecast-recommendation-text">
+                    Air quality remains satisfactory. Sensitive individuals should monitor peak afternoon ozone.
+                  </p>
+                </div>
+              </div>
+
+              <div class="glass-card" style="font-size:0.75rem; color:#1e293b; line-height:1.5;">
+                <strong style="color:var(--text-primary); display:block; margin-bottom:4px;">Checkpoint Specifications:</strong>
+                Trained 2-layer Recurrent Network on 2,500 Pune lag sequences (10 environmental features) with 95% Confidence Interval band estimation.
+              </div>
+            </div>
+
+            <!-- Trajectory Chart -->
+            <div class="glass-card">
+              <div class="card-title-row">
+                <span class="card-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                  Multi-Step Forward AQI Trajectory with 95% Confidence Bounds
+                </span>
+                <span class="card-subtitle">1–24 Hour Ahead Dynamic Rollout</span>
+              </div>
+              <div class="chart-container" style="height:300px;">
+                <canvas id="forecast-trajectory-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Pollutant Projections -->
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Individual Multi-Pollutant Projections (PM2.5, PM10, NO2)
+              </span>
+              <span class="card-subtitle">Dynamic chemical breakdown along the forecast horizon</span>
+            </div>
+            <div class="chart-container" style="height:250px;">
+              <canvas id="pollutant-trajectory-chart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             TAB 4: MILESTONE 2 — SPATIAL GEOSTATISTICAL INTERPOLATION (Weeks 3–4)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module2_kriging">
+
+          <div class="glass-card" style="margin-bottom: 20px;">
+            <h3 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:700;">
+              Spatial Geostatistical AQI Interpolation Engine
+            </h3>
+            <p style="font-size:0.8rem; color:#1e293b; margin-top:4px;">
+              Estimates continuous ambient air quality at arbitrary user coordinates between physical monitoring stations using Inverse Distance Weighting (IDW) or Ordinary Kriging with a Gaussian Semivariogram.
+            </p>
+          </div>
+
+          <div class="interpolation-grid">
+            <!-- Interpolation Control & Output -->
+            <div class="glass-card">
+              <div class="card-title-row">
+                <span class="card-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  Target Geographic Coordinates
+                </span>
+                <span class="card-subtitle">Click map to set</span>
+              </div>
+
+              <!-- 10 Pune Regions Quick Pick -->
+              <div class="input-field-group" style="margin-bottom:12px;">
+                <label for="kriging-region-select" style="font-weight:600; display:flex; justify-content:space-between;">
+                  <span>📍 Select Pune Dataset Region (10 Stations)</span>
+                  <span style="font-size:0.72rem; color:#1e293b;">Click station to interpolate</span>
+                </label>
+                <select class="custom-select" id="kriging-region-select" style="width:100%; font-size:0.84rem; padding:7px 10px;">
+                  <option value="">— Select from 10 Pune Dataset Stations —</option>
+                  <option value="18.5594,73.8287,BopadiSquare_65">Bopodi Square [BopadiSquare_65]</option>
+                  <option value="18.5017,73.8136,Karve Statue Square_5">Karve Statue Square [Karve Statue Square_5]</option>
+                  <option value="18.4873,73.8856,Lullanagar_Square_14">Lullanagar Square [Lullanagar_Square_14]</option>
+                  <option value="18.5018,73.9415,Hadapsar_Gadital_01">Hadapsar Gadital [Hadapsar_Gadital_01]</option>
+                  <option value="18.4517,73.8562,PMPML_Bus_Depot_Deccan_15">PMPML Bus Depot Deccan [PMPML_Bus_Depot_Deccan_15]</option>
+                  <option value="18.5344,73.8261,Goodluck Square_Cafe_23">Goodluck Square Cafe [Goodluck Square_Cafe_23]</option>
+                  <option value="18.5156,73.8244,Chitale Bandhu Corner_41">Chitale Bandhu Corner [Chitale Bandhu Corner_41]</option>
+                  <option value="18.5251,73.7929,Pune Railway Station_28">Pune Railway Station [Pune Railway Station_28]</option>
+                  <option value="18.4822,73.8581,Rajashri_Shahu_Bus_stand_19">Rajashri Shahu Bus Stand [Rajashri_Shahu_Bus_stand_19]</option>
+                  <option value="18.5518,73.8306,Dr Baba Saheb Ambedkar Sethu Junction_60">Dr. Babasaheb Ambedkar Setu [Dr Baba Saheb Ambedkar Sethu Junction_60]</option>
+                </select>
+              </div>
+
+              <!-- Coords Inputs -->
+              <div class="coordinate-inputs-row">
+                <div class="input-field-group">
+                  <label for="interp-lat">Target Latitude</label>
+                  <input type="number" step="0.0001" class="text-input" id="interp-lat" value="18.5018">
+                </div>
+                <div class="input-field-group">
+                  <label for="interp-lon">Target Longitude</label>
+                  <input type="number" step="0.0001" class="text-input" id="interp-lon" value="73.9415">
+                </div>
+              </div>
+
+
+              <!-- Standardized Geostatistical Algorithm -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); padding:6px 14px; border-radius:6px; color:#15803d; font-size:0.82rem; font-weight:700;">
+                  <span class="pulse-dot" style="width:7px; height:7px; background:#15803d; border-radius:50%;"></span>
+                  Ordinary Kriging (Standardized Geostatistical Model)
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-size:0.75rem; color:#1e293b;">Spatial Range:</span>
+                  <span style="font-size:0.8rem; font-weight:700; color:#0f172a; background:rgba(255,255,255,0.05); padding:3px 8px; border-radius:4px; border:1px solid var(--border-subtle);">6.0 km (Urban Pune)</span>
+                </div>
+              </div>
+
+              <button class="btn-action btn-primary" id="btn-run-interpolation" style="width:100%; justify-content:center; margin-bottom:16px;">
+                Compute Spatial Interpolation
+              </button>
+
+              <!-- Result Output Display -->
+              <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:8px; padding:16px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-size:0.74rem; color:#1e293b;">Estimated Ambient AQI</div>
+                  <div style="font-size:2.2rem; font-weight:800; font-family:'Outfit',sans-serif; color:#f59e0b;" id="interp-result-val">68.4</div>
+                </div>
+                <div style="text-align:right; font-size:0.78rem; color:#1e293b; line-height:1.6;">
+                  <div>Nearest Physical Station: <strong id="interp-nearest-stn" style="color:#0f172a;">BopadiSquare (1.8 km)</strong></div>
+                  <div>Geostatistical Confidence: <strong id="interp-confidence" style="color:#10b981;">94%</strong></div>
+                  <div>Estimation Variance: <strong id="interp-uncertainty" style="color:#0284c7;">±4.2 σ</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interpolation Visual Instructions & Theory -->
+            <div class="glass-card">
+              <div class="card-title-row">
+                <span class="card-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Geostatistical Interpolation Methodology
+                </span>
+              </div>
+              <div style="font-size:0.8rem; color:#1e293b; line-height:1.6;">
+                <p style="margin-bottom:10px;">
+                  <strong>1. Inverse Distance Weighting (IDW):</strong> Calculates ambient pollution as a normalized linear combination of nearby monitoring stations weighted by their inverse distance $w_i = 1 / d_i^p$.
+                </p>
+                <p style="margin-bottom:10px;">
+                  <strong>2. Ordinary Kriging with Gaussian Variogram:</strong> Minimizes estimation error variance $\sigma_K^2 = \sum \lambda_i \gamma(s_i, s_0) + \mu$, accounting for spatial autocorrelation structures across the Pune urban terrain.
+                </p>
+                <p>
+                  <strong>How to use:</strong> You can click on any point on the map to automatically populate latitude and longitude coordinates and compute the localized air quality index.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             TAB 5: MILESTONE 2 — TRAVEL ROUTE POLLUTION ESTIMATOR (Weeks 3–4)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module2_route">
+
+          <div class="route-planner-grid">
+            <!-- Journey Travel Planner Card -->
+            <div class="glass-card">
+              <div class="card-title-row">
+                <span class="card-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                  Travel Journey Exposure Configuration
+                </span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                <div class="input-field-group">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <label for="route-origin-select" style="margin-bottom:0; font-weight:600;">
+                      <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#22c55e; margin-right:6px;"></span>
+                      Journey Origin
+                    </label>
+                    <span style="font-size:0.72rem; color:#1e293b;">Pune Dataset Station</span>
+                  </div>
+                  <select class="custom-select" id="route-origin-select" style="width:100%; font-size:0.82rem;">
+                    <!-- Populated dynamically with stations and hubs -->
+                  </select>
+                  <input type="text" id="route-origin" value="Hadapsar Gadital, Pune" style="display:none;">
+                </div>
+
+                <div style="display:flex; justify-content:center; margin:-6px 0;">
+                  <button type="button" id="btn-swap-route" class="btn-ghost" title="Swap Origin & Destination" style="padding:4px 12px; font-size:0.75rem; border-radius:14px; border:1px solid var(--border-subtle); display:flex; align-items:center; gap:5px; cursor:pointer; background:var(--bg-card); color:var(--text-secondary);">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m7 15 5 5 5-5"/><path d="m17 9-5-5-5 5"/></svg>
+                    <span>Swap Route</span>
+                  </button>
+                </div>
+
+                <div class="input-field-group">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <label for="route-dest-select" style="margin-bottom:0; font-weight:600;">
+                      <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#ef4444; margin-right:6px;"></span>
+                      Journey Destination
+                    </label>
+                    <span style="font-size:0.72rem; color:#1e293b;">Pune Dataset Station</span>
+                  </div>
+                  <select class="custom-select" id="route-dest-select" style="width:100%; font-size:0.82rem;">
+                    <!-- Populated dynamically with stations and hubs -->
+                  </select>
+                  <input type="text" id="route-destination" value="Bopodi Square, Pune" style="display:none;">
+                </div>
+
+                <div class="input-field-group">
+                  <label for="route-transport-mode" style="font-weight:600;">Transport Mode & Inhalation Factor</label>
+                  <select class="custom-select" id="route-transport-mode" style="width:100%; padding:8px 12px;">
+                    <option value="Car">Car (Direct AC In-Cabin Filter - 1.0x)</option>
+                    <option value="Public Transport">Public Transport (Bus / Metro - 0.85x)</option>
+                    <option value="Motorcycle">Motorcycle (Ambient Roadside - 1.35x)</option>
+                    <option value="Cycling">Cycling (Elevated Inhalation - 1.8x)</option>
+                    <option value="Walking">Walking (Maximum Active Inhalation - 2.1x)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn-action btn-primary" id="btn-analyze-route" style="width:100%; justify-content:center;">
+                Analyze Route Exposure
+              </button>
+
+              <div style="margin-top:16px; border-top:1px solid var(--border-subtle); padding-top:12px;">
+                <span style="font-size:0.72rem; color:#1e293b; line-height:1.4; display:block;">
+                  Discretizes polyline waypoints along travel corridors, performs geostatistical spatial interpolation, and quantifies cumulative particulate inhalation exposure.
+                </span>
+              </div>
+            </div>
+
+            <!-- Route Comparison & Recommendation -->
+            <div>
+              <!-- Reduction Banner -->
+              <div class="reduction-banner">
+                <div>
+                  <h4 style="font-size:0.95rem; font-weight:700; color:#059669;">✅ Best Route: Route C — Eco Green Corridor</h4>
+                  <span style="font-size:0.75rem; color:#1e293b;">Lowest AQI exposure — saves up to 42% particulate intake vs arterial route</span>
+                </div>
+                <div class="reduction-stat" id="exposure-reduction-val">-42%</div>
+              </div>
+
+              <!-- 3-Route Comparison Grid -->
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">
+
+                <!-- Route A — Worst (Red) -->
+                <div class="route-card arterial" style="border-left:4px solid #ef4444;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">Route A</span>
+                    <span class="route-badge" style="background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.2);">High Exposure</span>
+                  </div>
+                  <div style="font-size:0.75rem; color:#1e293b; margin-bottom:8px;">Direct Arterial Highway</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; border-top:1px solid var(--border-subtle); padding-top:8px;">
+                    <div>Distance: <strong id="route-a-dist" style="color:var(--text-primary);">12.4 km</strong></div>
+                    <div>Mean AQI: <strong id="route-a-aqi" style="color:#ef4444;">148</strong></div>
+                    <div>PM2.5 Exp: <strong id="route-a-exposure" style="color:#ef4444;">420 µg</strong></div>
+                    <div>Traffic: <strong style="color:#ef4444;">Heavy</strong></div>
+                  </div>
+                </div>
+
+                <!-- Route B — Moderate (Amber) -->
+                <div class="route-card" style="border-left:4px solid #d97706; background:#fffbeb; border:1px solid rgba(217,119,6,0.2);">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">Route B</span>
+                    <span class="route-badge" style="background:rgba(217,119,6,0.12); color:#d97706; border:1px solid rgba(217,119,6,0.2);">Moderate</span>
+                  </div>
+                  <div style="font-size:0.75rem; color:#1e293b; margin-bottom:8px;">Mixed Urban / Residential</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; border-top:1px solid rgba(217,119,6,0.15); padding-top:8px;">
+                    <div>Distance: <strong id="route-b-dist" style="color:var(--text-primary);">13.2 km</strong></div>
+                    <div>Mean AQI: <strong id="route-b-aqi" style="color:#d97706;">112</strong></div>
+                    <div>PM2.5 Exp: <strong id="route-b-exposure" style="color:#d97706;">340 µg</strong></div>
+                    <div>Traffic: <strong style="color:#d97706;">Moderate</strong></div>
+                  </div>
+                </div>
+
+                <!-- Route C — Best (Green) -->
+                <div class="route-card clean-air" style="border-left:4px solid #059669; background:#f0fdf4; border:1px solid rgba(5,150,105,0.25); box-shadow:0 0 0 2px rgba(5,150,105,0.1);">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-weight:700; font-size:0.92rem; color:var(--text-primary);">Route C ⭐</span>
+                    <span class="route-badge" style="background:rgba(5,150,105,0.12); color:#059669; border:1px solid rgba(5,150,105,0.25);">Best AQI</span>
+                  </div>
+                  <div style="font-size:0.75rem; color:#1e293b; margin-bottom:8px;">Eco Green Belt Bypass</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; border-top:1px solid rgba(5,150,105,0.2); padding-top:8px;">
+                    <div>Distance: <strong id="route-c-dist" style="color:var(--text-primary);">15.8 km</strong></div>
+                    <div>Mean AQI: <strong id="route-c-aqi" style="color:#059669;">76</strong></div>
+                    <div>PM2.5 Exp: <strong id="route-c-exposure" style="color:#059669;">243 µg</strong></div>
+                    <div>Traffic: <strong style="color:#059669;">Light</strong></div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Push Notifications Feed -->
+              <div class="glass-card">
+                <div class="card-title-row">
+                  <span class="card-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    Real-Time Push Notification Delivery Hub
+                  </span>
+                  <span class="card-subtitle">Active alerts and route exposure advisories</span>
+                </div>
+
+                <div class="notifications-feed">
+                  <div class="notification-item warning">
+                    <div class="notif-text-col">
+                      <h4>AQI Threshold Exceeded</h4>
+                      <p>Hadapsar Gadital AQI has reached 108 (Moderate). Sensitive groups should reduce prolonged outdoor exertion.</p>
+                    </div>
+                    <span class="notif-time">12m ago</span>
+                  </div>
+
+                  <div class="notification-item info">
+                    <div class="notif-text-col">
+                      <h4>Clean Air Route Recommendation</h4>
+                      <p>Bypassing the arterial corridor saves 34.5% cumulative PM2.5 inhalation on current journey.</p>
+                    </div>
+                    <span class="notif-time">35m ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Route Exposure Estimator Live Map ─────────────────────────── -->
+          <div class="glass-card" style="margin-top:20px;">
+            <div class="card-title-row" style="margin-bottom:12px;">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                Live Route Visualization — Pune Corridor Exposure Map
+              </span>
+              <span class="card-subtitle">Leaflet GIS route comparison: Route A (arterial) vs Route B (clean corridor)</span>
+            </div>
+
+            <!-- Route Map Legend -->
+            <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:0.75rem; color:#1e293b;">
+              <span><span style="display:inline-block; width:28px; height:4px; background:#ef4444; border-radius:2px; margin-right:5px; vertical-align:middle; opacity:0.85;"></span>Route A — Arterial (Worst)</span>
+              <span><span style="display:inline-block; width:28px; height:4px; background:#d97706; border-radius:2px; margin-right:5px; vertical-align:middle;"></span>Route B — Mixed Urban</span>
+              <span><span style="display:inline-block; width:28px; height:4px; background:#059669; border-radius:2px; margin-right:5px; vertical-align:middle;"></span>Route C — Eco Green (⭐ Best AQI)</span>
+            </div>
+
+            <!-- Dedicated Route Map Container -->
+            <div id="route-exposure-map" class="leaflet-map" style="height:440px; border-radius:10px; border:1px solid var(--border-subtle);"></div>
+
+            <div style="margin-top:10px; font-size:0.75rem; color:#1e293b; text-align:center;">
+              Click &quot;Analyze Route Exposure&quot; to render both route corridors on the map. Station background nodes show live AQI readings.
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================================
+             TAB 6: MILESTONE 2 — FASTAPI SERVICE & RETRAINING PIPELINE (Weeks 3–4)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module2_retrain">
+
+          <div class="glass-card" style="margin-bottom: 20px;">
+            <h3 style="font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:700;">
+              FastAPI Prediction Microservice & Continuous Retraining Pipeline
+            </h3>
+            <p style="font-size:0.8rem; color:#1e293b; margin-top:4px;">
+              High-concurrency ASGI REST API exposing trained PyTorch LSTM/GRU checkpoints, spatial geostatistics, and automated weekly batch retraining.
+            </p>
+          </div>
+
+          <!-- Microservice Endpoints Matrix -->
+          <div class="glass-card" style="margin-bottom:24px;">
+            <div class="card-title-row">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                FastAPI Endpoints Specification
+              </span>
+              <a href="/docs" target="_blank" class="api-docs-btn">Open Swagger UI (/docs)</a>
+            </div>
+
+            <div class="services-table-wrapper" style="margin-bottom:0;">
+              <table class="services-table">
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Route</th>
+                    <th>Function</th>
+                    <th>Input Schema</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="status-badge active" style="font-size:0.68rem;">POST</span></td>
+                    <td><code>/predict/forecast</code></td>
+                    <td>Multi-step 1–24h LSTM/GRU forecast with 95% CI</td>
+                    <td><code>ForecastRequest (loc, arch, horizon)</code></td>
+                    <td><span class="status-badge active">OPERATIONAL</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="status-badge active" style="font-size:0.68rem;">POST</span></td>
+                    <td><code>/predict/interpolate</code></td>
+                    <td>IDW & Ordinary Kriging point estimator</td>
+                    <td><code>InterpolateRequest (lat, lon, method)</code></td>
+                    <td><span class="status-badge active">OPERATIONAL</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="status-badge active" style="font-size:0.68rem;">POST</span></td>
+                    <td><code>/route/exposure</code></td>
+                    <td>Waypoint sampling & cumulative particulate intake</td>
+                    <td><code>RouteExposureRequest (origin, dest, mode)</code></td>
+                    <td><span class="status-badge active">OPERATIONAL</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="status-badge active" style="font-size:0.68rem;">POST</span></td>
+                    <td><code>/retrain</code></td>
+                    <td>Weekly batch retraining & checkpoint fine-tuning</td>
+                    <td><code>RetrainRequest (batch_filename, epochs)</code></td>
+                    <td><span class="status-badge active">OPERATIONAL</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="status-badge good" style="font-size:0.68rem;">GET</span></td>
+                    <td><code>/stations</code></td>
+                    <td>Full sensor telemetry across all monitoring nodes</td>
+                    <td><code>Query parameters (limit)</code></td>
+                    <td><span class="status-badge active">OPERATIONAL</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Weekly Retraining Trigger Box -->
+          <div class="glass-card">
+            <div class="card-title-row">
+              <span class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Weekly Continuous Retraining Pipeline Trigger
+              </span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+              <div>
+                <p style="font-size:0.8rem; color:#1e293b; line-height:1.5; margin-bottom:14px;">
+                  Ingests new batches of sensor observations, validates schema integrity, normalizes features with fitted MinMaxScaler, and fine-tunes LSTM & GRU checkpoint weights.
+                </p>
+
+                <div class="input-field-group" style="margin-bottom:12px;">
+                  <label for="retrain-epochs">Training Epochs</label>
+                  <input type="number" min="2" max="50" value="12" class="text-input" id="retrain-epochs">
+                </div>
+
+                <button class="btn-action btn-primary" id="btn-trigger-retraining" style="width:100%; justify-content:center;">
+                  Execute Continuous Retraining
+                </button>
+              </div>
+
+              <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:8px; padding:16px;">
+                <div style="font-size:0.75rem; color:#1e293b; text-transform:uppercase; font-weight:700; margin-bottom:8px;">Model Registry Metadata</div>
+                <div style="font-size:0.8rem; color:#1e293b; line-height:1.6;">
+                  <div>• Active Architecture: <strong>PyTorch GRU (2-layer stacked)</strong></div>
+                  <div>• Training Samples: <strong>2,500 sequences</strong></div>
+                  <div>• Validation Loss: <strong>0.0034 MSE</strong></div>
+                  <div>• R² Coefficient: <strong>0.902 (90.2% variance explained)</strong></div>
+                  <div>• Checkpoints: <code>models/aqi_gru.pt</code>, <code>models/aqi_lstm.pt</code></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet GIS & Heatmap Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js Modern UMD Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Application Modules -->
+  <script src="/static/js/api.js?v=3.3"></script>
+  <script src="/static/js/charts.js?v=3.3"></script>
+  <script src="/static/js/map.js?v=3.3"></script>
+  <script src="/static/js/app.js?v=3.3"></script>
+</body>
+</html>

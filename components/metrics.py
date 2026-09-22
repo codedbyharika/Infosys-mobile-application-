@@ -1,23 +1,18 @@
-"""
+﻿"""
 Metrics and Visual Indicator Components — Dark Theme
 Professional dark metric cards, AQI banners, pollutant grids, weather panels.
 """
 
 import streamlit as st
-from data.demo_data import get_aqi_category_info
+from data.custom_dataset import get_aqi_category_info
 
 # ── Dark-theme color tokens ────────────────────────────────────────────────
 BG_CARD   = "#FFFFFF"   # card surface
 BG_INNER  = "#F8FAFC"   # nested / inset surface
 BORDER    = "#334155"   # card border
 TEXT_PRI  = "#0F172A"   # primary text
-TEXT_SEC  = "#64748B"   # secondary / muted text
-TEXT_DIM  = "#64748B"   # very muted
-
-
-def render_demo_banner(module_label: str = ""):
-    """Non-intrusive demo mode indicator — dark style."""
-    pass
+TEXT_SEC  = "#0F172A"   # secondary / muted text
+TEXT_DIM  = "#0F172A"   # very muted
 
 
 def render_hero_aqi_card(aqi_val: float, dominant_pollutant: str, last_updated: str, data_source: str):

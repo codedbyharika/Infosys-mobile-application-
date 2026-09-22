@@ -1,4 +1,4 @@
-"""
+﻿"""
 Interactive Map Components — Dark Tile Theme
 Folium maps using CartoDB dark_matter tiles.
 """
@@ -6,7 +6,7 @@ Folium maps using CartoDB dark_matter tiles.
 import folium
 from streamlit_folium import st_folium
 import streamlit as st
-from data.demo_data import get_aqi_category_info
+from data.custom_dataset import get_aqi_category_info
 
 
 def _haversine_km(lat1, lon1, lat2, lon2) -> float:
@@ -176,7 +176,7 @@ def render_pollution_map(
                 AQI: {stn_aqi} — {cat['label']}
             </div>
             Status: <b style="color:#16A34A;">{stn.get('status', 'Active')}</b><br>
-            <span style="color:#64748B; font-size:11px;">CPCB / WAQI Continuous Feed</span>
+            <span style="color:#0F172A; font-size:11px;">CPCB / WAQI Continuous Feed</span>
         </div>
         """
 
@@ -317,15 +317,37 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
             <span style="color:#991B1B; font-size:11px;">Passes congested urban roads</span>
         </div>
         """
-        folium.PolyLine(
-            locations=coords_a,
-            color="#DC2626",
-            weight=5,
-            opacity=0.85,
-            dash_array="7 6",
-            tooltip=f"🔴 Route 1 (Arterial - Red): {dist_a} km | {dur_a} min | Avg AQI: {avg_aqi_a} | Exposure: {exp_a}/100",
-            popup=folium.Popup(popup_a_html, max_width=250)
-        ).add_to(m)
+        # Waypoint nodes along Route A
+        for wp in route_a.get("waypoint_details", []):
+            i = wp.get("index", 1)
+            wp_lat = wp.get("lat")
+            wp_lon = wp.get("lon")
+            wp_aqi = wp.get("aqi", "N/A")
+            wp_cat = wp.get("category", "Moderate")
+            wp_stn = wp.get("nearest_station_clean", "Pune Region")
+            wp_d_stn = wp.get("distance_to_station_km", "")
+            wp_d_orig = wp.get("distance_from_origin_km", "")
+            if wp_lat is not None and wp_lon is not None:
+                folium.CircleMarker(
+                    location=[wp_lat, wp_lon],
+                    radius=4,
+                    color="#DC2626",
+                    fill=True,
+                    fill_color="#DC2626",
+                    fill_opacity=0.85,
+                    weight=1.5,
+                    tooltip=f"🔴 Route 1 Waypoint #{i}: {wp_aqi} AQI ({wp_cat}) | Near {wp_stn} ({wp_d_stn} km)",
+                    popup=folium.Popup(
+                        f"""<div style='font-family:Arial,sans-serif; font-size:12px; min-width:180px;'>
+                            <b style='color:#DC2626;'>🔴 Arterial Route — Waypoint #{i}</b><br>
+                            <b>Ordinary Kriging AQI:</b> <span style='color:#DC2626; font-weight:bold;'>{wp_aqi}</span> ({wp_cat})<br>
+                            <b>Nearest Sensor:</b> {wp_stn} ({wp_d_stn} km)<br>
+                            <b>Journey Progress:</b> {wp_d_orig} km from origin<br>
+                            <span style='color:#0F172A; font-size:10px;'>Coord: {wp_lat:.4f}, {wp_lon:.4f}</span>
+                        </div>""",
+                        max_width=220
+                    )
+                ).add_to(m)
 
     # 4. Route 2: Alternative Corridor (BLUE)
     if coords_b:
@@ -355,6 +377,38 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
             popup=folium.Popup(popup_b_html, max_width=250)
         ).add_to(m)
 
+        # Waypoint nodes along Route B
+        for wp in route_b.get("waypoint_details", []):
+            i = wp.get("index", 1)
+            wp_lat = wp.get("lat")
+            wp_lon = wp.get("lon")
+            wp_aqi = wp.get("aqi", "N/A")
+            wp_cat = wp.get("category", "Moderate")
+            wp_stn = wp.get("nearest_station_clean", "Pune Region")
+            wp_d_stn = wp.get("distance_to_station_km", "")
+            wp_d_orig = wp.get("distance_from_origin_km", "")
+            if wp_lat is not None and wp_lon is not None:
+                folium.CircleMarker(
+                    location=[wp_lat, wp_lon],
+                    radius=4.5,
+                    color="#2563EB",
+                    fill=True,
+                    fill_color="#2563EB",
+                    fill_opacity=0.85,
+                    weight=1.5,
+                    tooltip=f"🔵 Route 2 Waypoint #{i}: {wp_aqi} AQI ({wp_cat}) | Near {wp_stn} ({wp_d_stn} km)",
+                    popup=folium.Popup(
+                        f"""<div style='font-family:Arial,sans-serif; font-size:12px; min-width:180px;'>
+                            <b style='color:#2563EB;'>🔵 Alternative Route — Waypoint #{i}</b><br>
+                            <b>Ordinary Kriging AQI:</b> <span style='color:#2563EB; font-weight:bold;'>{wp_aqi}</span> ({wp_cat})<br>
+                            <b>Nearest Sensor:</b> {wp_stn} ({wp_d_stn} km)<br>
+                            <b>Journey Progress:</b> {wp_d_orig} km from origin<br>
+                            <span style='color:#0F172A; font-size:10px;'>Coord: {wp_lat:.4f}, {wp_lon:.4f}</span>
+                        </div>""",
+                        max_width=220
+                    )
+                ).add_to(m)
+
     # 5. Route 3: Clean-Air Corridor (GREEN - RECOMMENDED)
     if coords_c:
         dist_c = route_c.get('distance_km', '')
@@ -382,25 +436,37 @@ def render_route_map(route_analysis: dict, *args, **kwargs):
             popup=folium.Popup(popup_c_html, max_width=260)
         ).add_to(m)
 
-        # Waypoint nodes along the recommended route
-        wp_details = route_c.get("waypoint_details", [])
-        if wp_details:
-            for i, wp in enumerate(wp_details):
-                if i % 2 == 1 and 0 < i < len(wp_details) - 1:
-                    wp_lat = wp.get("lat")
-                    wp_lon = wp.get("lon")
-                    wp_aqi = wp.get("aqi", "N/A")
-                    if wp_lat is not None and wp_lon is not None:
-                        folium.CircleMarker(
-                            location=[wp_lat, wp_lon],
-                            radius=5,
-                            color="#16A34A",
-                            fill=True,
-                            fill_color="#FFFFFF",
-                            fill_opacity=0.95,
-                            weight=2,
-                            tooltip=f"Green Route Waypoint {i+1}: AQI {wp_aqi}"
-                        ).add_to(m)
+        # Waypoint nodes along the recommended clean corridor route
+        for wp in route_c.get("waypoint_details", []):
+            i = wp.get("index", 1)
+            wp_lat = wp.get("lat")
+            wp_lon = wp.get("lon")
+            wp_aqi = wp.get("aqi", "N/A")
+            wp_cat = wp.get("category", "Moderate")
+            wp_stn = wp.get("nearest_station_clean", "Pune Region")
+            wp_d_stn = wp.get("distance_to_station_km", "")
+            wp_d_orig = wp.get("distance_from_origin_km", "")
+            if wp_lat is not None and wp_lon is not None:
+                folium.CircleMarker(
+                    location=[wp_lat, wp_lon],
+                    radius=5.5,
+                    color="#16A34A",
+                    fill=True,
+                    fill_color="#FFFFFF",
+                    fill_opacity=0.95,
+                    weight=2.5,
+                    tooltip=f"🟢 Route 3 Waypoint #{i}: {wp_aqi} AQI ({wp_cat}) | Near {wp_stn} ({wp_d_stn} km)",
+                    popup=folium.Popup(
+                        f"""<div style='font-family:Arial,sans-serif; font-size:12px; min-width:190px;'>
+                            <b style='color:#16A34A;'>🟢 Clean Corridor — Waypoint #{i}</b><br>
+                            <b>Ordinary Kriging AQI:</b> <span style='color:#16A34A; font-weight:bold;'>{wp_aqi}</span> ({wp_cat})<br>
+                            <b>Nearest Sensor:</b> {wp_stn} ({wp_d_stn} km)<br>
+                            <b>Journey Progress:</b> {wp_d_orig} km from origin<br>
+                            <span style='color:#0F172A; font-size:10px;'>Coord: {wp_lat:.4f}, {wp_lon:.4f}</span>
+                        </div>""",
+                        max_width=230
+                    )
+                ).add_to(m)
 
     # Avoided high-pollution hotspots overlay
     for spot in hotspots:

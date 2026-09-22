@@ -1,4 +1,4 @@
-"""
+﻿"""
 Module 2 — Predictive AQI Forecasting Model & Spatial Geostatistics
 EcoAir Intelligence System
 """
@@ -12,9 +12,7 @@ import folium
 from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 
-from data.demo_data import get_aqi_category_info
-from data.custom_dataset import load_pune_data, get_pune_historical_timeseries
-from components.metrics import render_demo_banner
+from data.custom_dataset import load_pune_data, get_pune_historical_timeseries, get_aqi_category_info
 from components.charts import render_aqi_forecast_chart, render_pollutant_forecast_chart
 from components.sidebar import render_sidebar
 from ml.models import AQIPredictor
@@ -36,12 +34,12 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .stApp { background-color: #F8FAFC !important; }
 section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0; }
-section[data-testid="stSidebar"] * { color: #64748B !important; }
+section[data-testid="stSidebar"] * { color: #0F172A !important; }
 .block-container { padding-top: 1.8rem; padding-bottom: 2rem; max-width: 1380px; }
 [data-testid="stMetric"] { background: #FFFFFF !important; border: 1px solid #334155 !important; border-radius: 8px; min-height: 96px; display: flex; flex-direction: column; justify-content: center; }
-[data-testid="stMetricLabel"] { color: #64748B !important; }
+[data-testid="stMetricLabel"] { color: #0F172A !important; }
 [data-testid="stMetricValue"] { color: #0F172A !important; }
-[data-testid="stMetricDelta"] { color: #64748B !important; }
+[data-testid="stMetricDelta"] { color: #0F172A !important; }
 .stButton > button, div[data-testid="stButton"] > button {
     background: #FFFFFF !important;
     border: 1px solid #334155 !important;
@@ -68,7 +66,7 @@ details summary { color: #334155 !important; font-weight: 600; font-size: 0.88re
 [data-testid="stAlert"] { background: #EFF6FF !important; border: 1px solid #BFDBFE !important; color: #1D4ED8 !important; }
 hr { border-color: #334155 !important; }
 h1, h2, h3, h4 { color: #0F172A !important; }
-[data-testid="stCaptionContainer"] { color: #64748B !important; }
+[data-testid="stCaptionContainer"] { color: #0F172A !important; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #F8FAFC; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
 /* Equal-height Card Utilities for Module 2 */
@@ -140,7 +138,7 @@ st.markdown(
                     justify-content:space-between; align-items:center;">
         <div>
             <b style="color:#0F172A; font-size:0.92rem;">Operational ML Engine Status: ACTIVE</b>
-            <div style="color:#64748B; font-size:0.78rem;">
+            <div style="color:#0F172A; font-size:0.78rem;">
                 Trained Architecture: PyTorch GRU (Gated Recurrent Unit) | Input Lags: 24h (10 features) | Last Retrained: {trained_status}
             </div>
         </div>
@@ -182,7 +180,7 @@ with tab_forecast:
     with c3:
         st.markdown(
             """<div style="padding-top:4px;">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:4px;">Inference Neural Architecture</div>
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:4px;">Inference Neural Architecture</div>
                 <div style="background:#FFFFFF; border:1px solid #334155; border-radius:5px; padding:7px 12px; font-weight:700; color:#1D4ED8; font-size:0.86rem; display:flex; align-items:center; gap:8px;">
                     <span style="height:8px; width:8px; background:#10B981; border-radius:50%; display:inline-block;"></span>
                     PyTorch GRU Forecaster
@@ -196,16 +194,16 @@ with tab_forecast:
         run_btn = st.button("Run Forecast", use_container_width=True, type="primary")
 
     station_data = ALL_LOCATIONS.get(selected_loc, {})
+    hist_df = get_pune_historical_timeseries(selected_loc, 24)
 
-    # Execute GRU inference
+    # Execute GRU inference directly on preprocessed Pune dataset telemetry
     arch_type = "GRU"
     pred_res = predictor.predict(
         current_data=station_data,
+        history_df=hist_df,
         architecture="GRU",
         horizon=horizon_hours
     )
-
-    hist_df = get_pune_historical_timeseries(selected_loc, 24)
 
     # Build forecast dataframe from real model output
     start_time = pd.Timestamp.now().floor("h")
@@ -240,13 +238,13 @@ with tab_forecast:
     with mc1:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Current Observed AQI
                 </div>
                 <div style="font-size:1.6rem; font-weight:800; color:{cur_cat['color']}; line-height:1;">
                     {int(current_aqi)}
                 </div>
-                <div style="font-size:0.72rem; color:#64748B; line-height:1.2;">
+                <div style="font-size:0.72rem; color:#0F172A; line-height:1.2;">
                     Baseline Sensor Telemetry
                 </div>
             </div>""",
@@ -256,7 +254,7 @@ with tab_forecast:
     with mc2:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Predicted AQI ({chosen_label})
                 </div>
                 <div style="font-size:1.6rem; font-weight:800; color:{pred_cat['color']}; line-height:1;">
@@ -272,13 +270,13 @@ with tab_forecast:
     with mc3:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Predicted Severity Category
                 </div>
                 <div style="font-size:1.05rem; font-weight:800; color:{pred_cat['color']}; line-height:1.2; white-space:normal; word-break:break-word;">
                     {pred_cat['label']}
                 </div>
-                <div style="font-size:0.72rem; color:#64748B; line-height:1.2; white-space:normal; word-break:break-word;">
+                <div style="font-size:0.72rem; color:#0F172A; line-height:1.2; white-space:normal; word-break:break-word;">
                     {pred_cat['severity']}
                 </div>
             </div>""",
@@ -290,13 +288,13 @@ with tab_forecast:
         up_b  = forecast_df["upper_bound"].iloc[-1]
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     95% Confidence Interval
                 </div>
                 <div style="font-size:1.25rem; font-weight:800; color:#4F46E5; line-height:1.2;">
                     {int(low_b)} — {int(up_b)} AQI
                 </div>
-                <div style="font-size:0.72rem; color:#64748B; line-height:1.2;">
+                <div style="font-size:0.72rem; color:#0F172A; line-height:1.2;">
                     Margin: +/- {(up_b-low_b)/2:.1f} AQI
                 </div>
             </div>""",
@@ -398,40 +396,26 @@ with tab_spatial:
 
     dropdown_labels = list(dropdown_map.keys())
 
-    # Initialize lat/lon session state if missing
-    if "kriging_lat_val" not in st.session_state:
-        st.session_state["kriging_lat_val"] = float(dropdown_map[dropdown_labels[0]][0])
-    if "kriging_lon_val" not in st.session_state:
-        st.session_state["kriging_lon_val"] = float(dropdown_map[dropdown_labels[0]][1])
-
-    # Region change handler
-    def _handle_region_selection():
-        selected = st.session_state.get("kriging_region_choice")
-        if selected in dropdown_map and not selected.startswith("Custom"):
-            c_lat, c_lon = dropdown_map[selected]
-            st.session_state["kriging_lat_val"] = float(c_lat)
-            st.session_state["kriging_lon_val"] = float(c_lon)
-
-    st.selectbox(
+    selected_region = st.selectbox(
         "📍 Select Pune Dataset Region / Physical Monitoring Station",
         dropdown_labels,
         index=0,
         key="kriging_region_choice",
-        on_change=_handle_region_selection,
-        help="Select any of the 10 real monitoring regions from the preprocessed Pune dataset to focus interpolation."
+        help="Select any of the 10 real monitoring regions from the preprocessed Pune dataset to focus Ordinary Kriging."
     )
+
+    default_lat, default_lon = dropdown_map[selected_region]
 
     sc_lat, sc_lon, sc_btn = st.columns([1.5, 1.5, 1.2])
     with sc_lat:
-        target_lat = st.number_input("Target Latitude (°N)", format="%.5f", step=0.005, key="kriging_lat_val")
+        target_lat = st.number_input("Target Latitude (°N)", value=float(default_lat), format="%.5f", step=0.005, key=f"krig_lat_{selected_region}")
     with sc_lon:
-        target_lon = st.number_input("Target Longitude (°E)", format="%.5f", step=0.005, key="kriging_lon_val")
+        target_lon = st.number_input("Target Longitude (°E)", value=float(default_lon), format="%.5f", step=0.005, key=f"krig_lon_{selected_region}")
     with sc_btn:
         st.write(" "); st.write(" ")
         st.button("Interpolate AQI", use_container_width=True, type="primary")
 
-
-    # Run Ordinary Kriging directly
+    # Run Ordinary Kriging directly with calibrated urban spatial range
     interp_result = interpolator.kriging(target_lat, target_lon)
     est_aqi = interp_result["estimated_aqi"]
     cat_info = get_aqi_category_info(est_aqi)
@@ -448,7 +432,7 @@ with tab_spatial:
     with res_c1:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Estimated Localized AQI
                 </div>
                 <div style="font-size:1.6rem; font-weight:800; color:{cat_info['color']}; line-height:1;">
@@ -463,14 +447,14 @@ with tab_spatial:
     with res_c2:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Nearest Physical Station
                 </div>
                 <div style="min-height:44px; display:flex; flex-direction:column; justify-content:center;">
                     <div style="font-size:0.98rem; font-weight:700; color:#0F172A; line-height:1.25; white-space:normal; word-break:break-word;" title="{nearest_name} — {nearest_area} ({nearest_stn_id})">
                         {nearest_name}
                     </div>
-                    <div style="font-size:0.68rem; color:#64748B; line-height:1.2; margin-top:2px; white-space:normal; word-break:break-word;" title="{nearest_area} [{nearest_stn_id}]">
+                    <div style="font-size:0.68rem; color:#0F172A; line-height:1.2; margin-top:2px; white-space:normal; word-break:break-word;" title="{nearest_area} [{nearest_stn_id}]">
                         {nearest_area} [{nearest_stn_id}]
                     </div>
                 </div>
@@ -483,13 +467,13 @@ with tab_spatial:
     with res_c3:
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Spatial Confidence Score
                 </div>
                 <div style="font-size:1.1rem; font-weight:700; color:#10B981;">
                     {int(interp_result.get('confidence', 0.85) * 100)}%
                 </div>
-                <div style="font-size:0.72rem; color:#64748B;">Algorithm: Ordinary Kriging (Gaussian)</div>
+                <div style="font-size:0.72rem; color:#0F172A;">Algorithm: Ordinary Kriging (Gaussian)</div>
             </div>""",
             unsafe_allow_html=True
         )
@@ -497,13 +481,13 @@ with tab_spatial:
         var_score = interp_result.get("kriging_variance") or interp_result.get("uncertainty_score", 3.2)
         st.markdown(
             f"""<div class="eq-metric-box">
-                <div style="font-size:0.78rem; color:#64748B; font-weight:600; margin-bottom:2px;">
+                <div style="font-size:0.78rem; color:#0F172A; font-weight:600; margin-bottom:2px;">
                     Spatial Estimation Variance
                 </div>
                 <div style="font-size:1.1rem; font-weight:700; color:#F59E0B;">
                     {var_score:.2f}
                 </div>
-                <div style="font-size:0.72rem; color:#64748B;">Uncertainty Margin: +/- {np.sqrt(var_score):.1f} AQI</div>
+                <div style="font-size:0.72rem; color:#0F172A;">Uncertainty Margin: +/- {np.sqrt(var_score):.1f} AQI</div>
             </div>""",
             unsafe_allow_html=True
         )
@@ -603,7 +587,7 @@ with tab_spatial:
                 tooltip=f"Region: {reg_display_name} ({s_name}) | AQI: {int(s_aqi)}",
                 popup=f"""<div style='font-size:12px; line-height:1.4; min-width:180px;'>
                     <b style='color:#0F172A; font-size:13px;'>{reg_display_name}</b><br>
-                    <span style='color:#64748B; font-size:11px;'>ID: {s_name} | {reg_meta['area']}</span><br>
+                    <span style='color:#0F172A; font-size:11px;'>ID: {s_name} | {reg_meta['area']}</span><br>
                     <div style='margin-top:4px; padding:3px 6px; background:{s_cat['color']}22; border:1px solid {s_cat['color']}; border-radius:3px;'>
                         <b>Observed AQI:</b> <span style='color:{s_cat['color']}; font-weight:800;'>{int(s_aqi)} ({s_cat['label']})</span>
                     </div>
@@ -656,7 +640,7 @@ with tab_spatial:
                         <div style="font-size:0.75rem; color:#0F172A; font-weight:700; line-height:1.25; min-height:28px; display:flex; align-items:center; justify-content:center; white-space:normal; word-break:break-word;" title="{reg_disp}">
                             {reg_disp}
                         </div>
-                        <div style="font-size:0.68rem; color:#64748B; line-height:1.2; white-space:normal; word-break:break-word;" title="{st_name}">
+                        <div style="font-size:0.68rem; color:#0F172A; line-height:1.2; white-space:normal; word-break:break-word;" title="{st_name}">
                             {st_name}
                         </div>
                         <div style="font-size:1.05rem; font-weight:800; color:#1D4ED8; margin-top:2px;">{st_w:+.3f}</div>
@@ -691,19 +675,19 @@ with tab_spatial:
                     f'<div class="eq-region-card">'
                     f'<div style="height:76px; min-height:76px; max-height:76px; display:flex; flex-direction:column; justify-content:flex-start;">'
                     f'<div style="font-size:0.82rem; font-weight:700; color:#0F172A; line-height:1.25; white-space:normal; word-break:break-word;">{reg_name}</div>'
-                    f'<div style="font-size:0.70rem; color:#64748B; margin-top:3px; line-height:1.25; white-space:normal; word-break:break-word;">📍 {reg_area}</div>'
+                    f'<div style="font-size:0.70rem; color:#0F172A; margin-top:3px; line-height:1.25; white-space:normal; word-break:break-word;">📍 {reg_area}</div>'
                     f'</div>'
                     f'<div style="height:44px; min-height:44px; max-height:44px; display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-top:1px solid #E2E8F0; border-bottom:1px solid #E2E8F0; box-sizing:border-box;">'
                     f'<div style="display:flex; align-items:baseline; gap:4px;">'
                     f'<span style="font-size:1.50rem; font-weight:800; color:{cat_color}; line-height:1;">{s_aqi}</span>'
-                    f'<span style="font-size:0.68rem; color:#64748B; font-weight:600;">AQI</span>'
+                    f'<span style="font-size:0.68rem; color:#0F172A; font-weight:600;">AQI</span>'
                     f'</div>'
                     f'<span style="font-size:0.70rem; font-weight:700; color:{cat_color}; background:{cat_color}18; padding:3px 7px; border-radius:4px; border:1px solid {cat_color}44; white-space:normal; text-align:center;">{cat_label}</span>'
                     f'</div>'
                     f'<div style="height:90px; min-height:90px; max-height:90px; box-sizing:border-box; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:7px 9px; font-size:0.70rem; color:#334155; display:flex; flex-direction:column; justify-content:space-between;">'
                     f'<div style="display:flex; justify-content:space-between;"><span><b>PM2.5:</b> {val_pm25} µg/m³</span><span><b>PM10:</b> {val_pm10} µg/m³</span></div>'
                     f'<div style="display:flex; justify-content:space-between;"><span><b>Dominant:</b> <b style="color:#0369A1;">{dom_poll}</b></span></div>'
-                    f'<div style="font-size:0.67rem; color:#64748B; padding-top:3px; border-top:1px dashed #CBD5E1; display:flex; justify-content:space-between;"><span>{val_lat}°N</span><span>{val_lon}°E</span></div>'
+                    f'<div style="font-size:0.67rem; color:#0F172A; padding-top:3px; border-top:1px dashed #CBD5E1; display:flex; justify-content:space-between;"><span>{val_lat}°N</span><span>{val_lon}°E</span></div>'
                     f'</div>'
                     f'</div>'
                 )
@@ -744,36 +728,33 @@ with tab_route:
     )
 
     pune_stns = list(ALL_LOCATIONS.keys())
-    dropdown_options = pune_stns + ["Type Custom Landmark / Address..."]
+    stn_options = [f"{PUNE_REGIONS_META.get(k, {}).get('name', k)} [{k}]" for k in pune_stns]
+    stn_lookup = {f"{PUNE_REGIONS_META.get(k, {}).get('name', k)} [{k}]": k for k in pune_stns}
 
     r_col1, r_col2 = st.columns(2)
     with r_col1:
-        st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Origin Landmark / Station</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Origin Station (10 Pune Regions)</div>", unsafe_allow_html=True)
+        default_orig_idx = 3 if len(stn_options) > 3 else 0  # Hadapsar_Gadital_01
         orig_choice = st.selectbox(
-            "Origin Landmark / Station",
-            options=dropdown_options,
-            index=dropdown_options.index("Hadapsar_Gadital_01") if "Hadapsar_Gadital_01" in dropdown_options else 0,
+            "Origin Station",
+            options=stn_options,
+            index=default_orig_idx,
             key="m2_orig_station_select",
             label_visibility="collapsed"
         )
-        if orig_choice == "Type Custom Landmark / Address...":
-            route_origin = st.text_input("Type Origin Landmark", value="Swargate, Pune", key="m2_custom_origin_input")
-        else:
-            route_origin = orig_choice
+        route_origin = stn_lookup[orig_choice]
 
     with r_col2:
-        st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Destination Landmark / Station</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:0.82rem; font-weight:700; color:#0F172A; margin-bottom:4px;'>Destination Station (10 Pune Regions)</div>", unsafe_allow_html=True)
+        default_dest_idx = 0  # BopadiSquare_65
         dest_choice = st.selectbox(
-            "Destination Landmark / Station",
-            options=dropdown_options,
-            index=dropdown_options.index("BopadiSquare_65") if "BopadiSquare_65" in dropdown_options else 1,
+            "Destination Station",
+            options=stn_options,
+            index=default_dest_idx,
             key="m2_dest_station_select",
             label_visibility="collapsed"
         )
-        if dest_choice == "Type Custom Landmark / Address...":
-            route_dest = st.text_input("Type Destination Landmark", value="Viman Nagar, Pune", key="m2_custom_dest_input")
-        else:
-            route_dest = dest_choice
+        route_dest = stn_lookup[dest_choice]
 
     r_col3, r_col4 = st.columns(2)
     with r_col3:
@@ -832,11 +813,11 @@ with tab_route:
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{ra['distance_km']} km</div>
                         </div>
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{ra['duration_mins']} min</div>
                         </div>
                         <div style="background:#FEF2F2; padding:7px; border-radius:5px; border:1px solid #FECACA;">
@@ -849,7 +830,7 @@ with tab_route:
                         </div>
                     </div>
                 </div>
-                <div style="font-size:0.72rem; color:#64748B; border-top:1px solid #FEE2E2; padding-top:6px;">
+                <div style="font-size:0.72rem; color:#0F172A; border-top:1px solid #FEE2E2; padding-top:6px;">
                     Passes through congested urban arteries. Peak segment: <b style="color:#DC2626;">{ra.get('max_aqi', ra.get('avg_aqi', 'N/A'))} AQI</b>.
                 </div>
             </div>""",
@@ -872,11 +853,11 @@ with tab_route:
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{rb['distance_km']} km</div>
                         </div>
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{rb['duration_mins']} min</div>
                         </div>
                         <div style="background:#EFF6FF; padding:7px; border-radius:5px; border:1px solid #BFDBFE;">
@@ -912,11 +893,11 @@ with tab_route:
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Distance</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Distance</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{rc['distance_km']} km</div>
                         </div>
                         <div style="background:#F8FAFC; padding:7px; border-radius:5px; border:1px solid #E2E8F0;">
-                            <div style="font-size:0.68rem; color:#64748B;">Est. Travel Time</div>
+                            <div style="font-size:0.68rem; color:#0F172A;">Est. Travel Time</div>
                             <div style="font-size:1.1rem; font-weight:800; color:#0F172A;">{rc['duration_mins']} min</div>
                         </div>
                         <div style="background:#F0FDF4; padding:7px; border-radius:5px; border:1px solid #BBF7D0;">
@@ -969,7 +950,7 @@ with tab_fastapi_retrain:
                         justify-content:space-between; align-items:center;">
             <div>
                 <b style="color:#0F172A; font-size:0.95rem;">FastAPI Microservice Engine: {'ONLINE (PORT 8000)' if api_online else 'STANDBY'}</b>
-                <div style="color:#64748B; font-size:0.78rem;">
+                <div style="color:#0F172A; font-size:0.78rem;">
                     REST Endpoints: /predict/forecast, /predict/interpolate, /route/exposure, /retrain, /stations
                 </div>
             </div>
