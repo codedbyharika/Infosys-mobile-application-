@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EcoAir Intelligence — Leaflet GIS Mapping Engine
  * Manages spatial sensor markers, pollution dispersion heatmaps,
  * coordinate click-to-interpolate triggers, and route comparison polylines.
@@ -513,42 +513,47 @@ const MapEngine = {
         });
 
         const tooltipHtml = `
-          <div style="font-family:Inter,system-ui,sans-serif; font-size:11.5px; line-height:1.45; min-width:190px; padding:6px 8px; background:rgba(15,23,42,0.94); color:#f8fafc; border-radius:7px; border:1px solid rgba(255,255,255,0.18); box-shadow:0 8px 24px rgba(0,0,0,0.45);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:3px;">
-              <span style="font-weight:700; color:${routeColor}; font-size:11px;">${routeBadge} Waypoint #${wpIdx}</span>
-              <span style="background:${aqiColor}28; color:${aqiColor}; border:1px solid ${aqiColor}55; border-radius:3px; padding:1px 5px; font-size:9.5px; font-weight:700;">${cat}</span>
+          <div style="font-family:'Inter',system-ui,sans-serif; font-size:11.5px; line-height:1.45; min-width:205px; padding:8px 10px; background:#ffffff; color:#0f172a; border-radius:8px; border:1px solid #cbd5e1; box-shadow:0 10px 25px -5px rgba(15,23,42,0.15), 0 4px 6px -2px rgba(15,23,42,0.05);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
+              <span style="font-weight:700; color:${routeColor}; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;">${routeBadge} Waypoint #${wpIdx}</span>
+              <span style="background:${aqiColor}18; color:${aqiColor}; border:1px solid ${aqiColor}40; border-radius:4px; padding:1.5px 6px; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px;">${cat}</span>
             </div>
-            <div style="font-size:1.15rem; font-weight:800; color:${aqiColor}; font-family:'Outfit',sans-serif; margin:2px 0;">
-              ${wAqi} <span style="font-size:0.7rem; color:#1e293b; font-weight:500;">AQI (Kriging)</span>
+            <div style="font-size:1.25rem; font-weight:800; color:${aqiColor}; font-family:'Outfit',sans-serif; margin:3px 0 5px; display:flex; align-items:baseline; gap:6px;">
+              ${wAqi} <span style="font-size:0.72rem; color:#64748b; font-weight:600; font-family:'Inter',sans-serif; text-transform:uppercase; letter-spacing:0.3px;">AQI (Kriging)</span>
             </div>
-            <div style="font-size:11px; color:#1e293b; margin-top:2px;">
-              📍 <b>Near:</b> ${stn} (${dStn})
+            <div style="font-size:11px; color:#475569; margin-top:3px; display:flex; align-items:center; gap:4px;">
+              <span>📍</span> <span style="color:#64748b;">Near:</span> <strong style="color:#0f172a;">${stn}</strong> <span style="color:#64748b; font-size:10.5px;">(${dStn})</span>
             </div>
-            <div style="font-size:11px; color:#1e293b;">
-              🚗 <b>Journey Distance:</b> ${dOrig} from origin
+            <div style="font-size:11px; color:#475569; margin-top:2px; display:flex; align-items:center; gap:4px;">
+              <span>🚗</span> <span style="color:#64748b;">Progress:</span> <strong style="color:#0f172a;">${dOrig}</strong> <span style="color:#64748b; font-size:10.5px;">from origin</span>
             </div>
-            <div style="font-size:9.5px; color:#1e293b; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.12); padding-top:2px;">
-              🌐 ${wLat.toFixed(4)}° N, ${wLon.toFixed(4)}° E &nbsp;|&nbsp; Ordinary Kriging
+            <div style="font-size:9.5px; color:#64748b; margin-top:6px; border-top:1px dashed #e2e8f0; padding-top:4px; display:flex; justify-content:space-between; align-items:center;">
+              <span>🌐 ${wLat.toFixed(4)}° N, ${wLon.toFixed(4)}° E</span> <span style="font-weight:600; color:#0284c7;">Ordinary Kriging</span>
             </div>
           </div>
         `;
 
-        marker.bindTooltip(tooltipHtml, { direction: 'top', offset: [0, -6], opacity: 1.0 });
+        marker.bindTooltip(tooltipHtml, {
+          direction: 'top',
+          offset: [0, -6],
+          opacity: 1.0,
+          className: 'route-waypoint-tooltip'
+        });
 
         const popupHtml = `
-          <div style="font-family:Inter,system-ui,sans-serif; font-size:12px; line-height:1.5; min-width:200px; padding:4px;">
-            <strong style="color:${routeColor}; font-size:13px; display:block; margin-bottom:2px;">${routeName} — Waypoint #${wpIdx}</strong>
-            <div style="display:flex; align-items:center; gap:6px; margin:4px 0 6px;">
-              <span style="font-size:1.25rem; font-weight:800; color:${aqiColor}; font-family:Outfit,sans-serif;">${wAqi} AQI</span>
-              <span style="background:${aqiColor}20; color:${aqiColor}; border:1px solid ${aqiColor}40; border-radius:4px; padding:1px 6px; font-size:10px; font-weight:700;">${cat}</span>
+          <div style="font-family:'Inter',system-ui,sans-serif; font-size:12px; line-height:1.5; min-width:215px; padding:6px 4px; color:#0f172a;">
+            <strong style="color:${routeColor}; font-size:13px; display:block; margin-bottom:4px;">${routeName} — Waypoint #${wpIdx}</strong>
+            <div style="display:flex; align-items:center; gap:6px; margin:4px 0 8px;">
+              <span style="font-size:1.3rem; font-weight:800; color:${aqiColor}; font-family:'Outfit',sans-serif;">${wAqi} AQI</span>
+              <span style="background:${aqiColor}18; color:${aqiColor}; border:1px solid ${aqiColor}40; border-radius:4px; padding:1.5px 6px; font-size:10px; font-weight:700; text-transform:uppercase;">${cat}</span>
             </div>
-            <div><b>Geostatistical Estimator:</b> Ordinary Kriging</div>
-            <div><b>Nearest Monitoring Station:</b> ${stn} (${dStn})</div>
-            <div><b>Corridor Distance:</b> ${dOrig} from start</div>
-            <div style="color:#1e293b; font-size:10.5px; margin-top:4px;">Lat: ${wLat.toFixed(4)}, Lon: ${wLon.toFixed(4)}</div>
+            <div style="color:#334155; margin-bottom:3px;"><span style="color:#64748b;">Estimator:</span> <strong style="color:#0f172a;">Ordinary Kriging</strong></div>
+            <div style="color:#334155; margin-bottom:3px;"><span style="color:#64748b;">Nearest Station:</span> <strong style="color:#0f172a;">${stn}</strong> <span style="color:#64748b; font-size:11px;">(${dStn})</span></div>
+            <div style="color:#334155; margin-bottom:3px;"><span style="color:#64748b;">Progress:</span> <strong style="color:#0f172a;">${dOrig}</strong> <span style="color:#64748b; font-size:11px;">from origin</span></div>
+            <div style="color:#64748b; font-size:10.5px; margin-top:6px; border-top:1px solid #e2e8f0; padding-top:4px;">🌐 Coordinates: ${wLat.toFixed(4)}° N, ${wLon.toFixed(4)}° E</div>
           </div>
         `;
-        marker.bindPopup(popupHtml, { maxWidth: 240 });
+        marker.bindPopup(popupHtml, { maxWidth: 250 });
 
         marker.addTo(this.routeMapLayer);
       });
@@ -566,12 +571,12 @@ const MapEngine = {
       opacity: 0.85,
       dashArray: '10, 8'
     }).addTo(this.routeMapLayer)
-      .bindPopup(`<div style="font-family:inherit; padding:4px; min-width:180px;">
+      .bindPopup(`<div style="font-family:inherit; padding:4px; min-width:180px; color:#0f172a;">
         <strong style="color:#ef4444; font-size:13px;">🔴 Route A — Direct Arterial</strong><br/>
         <b>Distance:</b> ${distA} km &nbsp;|&nbsp; <b>Time:</b> ${durA} min<br/>
         <b>Mean AQI:</b> <span style="color:#ef4444; font-weight:700;">${aqiA}</span><br/>
         <b>Exposure Index:</b> <span style="color:#ef4444; font-weight:700;">${expA} / 100</span><br/>
-        <span style="color:#1e293b; font-size:11px;">Heavy traffic &amp; high particulate exposure</span>
+        <span style="color:#64748b; font-size:11px;">Heavy traffic &amp; high particulate exposure</span>
       </div>`);
 
     // Render Route A Waypoints
@@ -595,12 +600,12 @@ const MapEngine = {
       opacity: 0.9,
       dashArray: '7, 6'
     }).addTo(this.routeMapLayer)
-      .bindPopup(`<div style="font-family:inherit; padding:4px; min-width:180px;">
+      .bindPopup(`<div style="font-family:inherit; padding:4px; min-width:180px; color:#0f172a;">
         <strong style="color:#d97706; font-size:13px;">🟡 Route B — Mixed Urban Corridor</strong><br/>
         <b>Distance:</b> ${distB} km &nbsp;|&nbsp; <b>Time:</b> ${durB} min<br/>
         <b>Mean AQI:</b> <span style="color:#d97706; font-weight:700;">${aqiB}</span><br/>
         <b>Exposure Index:</b> <span style="color:#d97706; font-weight:700;">${expB} / 100</span><br/>
-        <span style="color:#1e293b; font-size:11px;">Secondary transit route</span>
+        <span style="color:#64748b; font-size:11px;">Secondary transit route</span>
       </div>`);
 
     // Render Route B Waypoints
@@ -976,20 +981,20 @@ const MapEngine = {
       const marker = L.marker([lat, lon], { icon: labelIcon });
 
       const popupHtml = `
-        <div style="font-family:'Inter',system-ui,sans-serif; font-size:12px; line-height:1.5; min-width:210px; padding:4px;">
+        <div style="font-family:'Inter',system-ui,sans-serif; font-size:12px; line-height:1.5; min-width:215px; padding:6px 4px; color:#0f172a;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <strong style="color:#0f172a; font-size:13px;">📍 ${displayName}</strong>
-            <span style="background:${color}20; color:${color}; border:1px solid ${color}50; border-radius:4px; padding:1px 7px; font-size:10px; font-weight:700;">${category}</span>
+            <span style="background:${color}18; color:${color}; border:1px solid ${color}40; border-radius:4px; padding:1.5px 7px; font-size:10px; font-weight:700; text-transform:uppercase;">${category}</span>
           </div>
           <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:8px;">
             <span style="font-size:1.6rem; font-weight:900; color:${color}; font-family:'Outfit',sans-serif; line-height:1;">${aqi}</span>
-            <span style="font-size:11px; color:#1e293b;">AQI — Intermediate Station</span>
+            <span style="font-size:11px; color:#64748b; font-weight:500;">AQI — Intermediate Station</span>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; font-size:11px; border-top:1px solid #e2e8f0; padding-top:6px;">
-            <div><b>PM2.5:</b> ${pm25}</div>
-            <div><b>PM10:</b> ${pm10}</div>
-            <div><b>Traffic:</b> ${traffic}</div>
-            <div><b>Coord:</b> ${lat.toFixed(4)}, ${lon.toFixed(4)}</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px; border-top:1px solid #e2e8f0; padding-top:6px; color:#334155;">
+            <div><span style="color:#64748b;">PM2.5:</span> <strong style="color:#0f172a;">${pm25}</strong></div>
+            <div><span style="color:#64748b;">PM10:</span> <strong style="color:#0f172a;">${pm10}</strong></div>
+            <div><span style="color:#64748b;">Traffic:</span> <strong style="color:#0f172a;">${traffic}</strong></div>
+            <div style="color:#64748b;"><span style="color:#64748b;">Coord:</span> ${lat.toFixed(4)}, ${lon.toFixed(4)}</div>
           </div>
         </div>
       `;
