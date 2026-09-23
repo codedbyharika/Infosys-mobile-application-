@@ -1,8 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- PWA Meta Tags (Milestone 3) -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AirSense AI">
+  <!-- PWA Web Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
   <title>AirSense — AI Environmental Intelligence & Predictive Platform</title>
   <meta name="description" content="AI-Powered Environmental Intelligence System for Air Quality Prediction and Smart Mobility Recommendations. Infosys Springboard Project Milestones 1 & 2.">
 
@@ -15,7 +23,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
   <!-- Custom Design System Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css?v=3.4">
+  <link rel="stylesheet" href="/static/css/style.css?v=4.0">
 </head>
 <body>
   <div class="app-container">
@@ -94,6 +102,26 @@
           </svg>
           <span>Route Exposure Estimator</span>
           <span class="nav-badge">Mobility</span>
+        </a>
+
+        <div style="font-size:0.68rem; text-transform:uppercase; color:#1e293b; font-weight:700; padding:12px 14px 4px; letter-spacing:0.06em;">
+          📱 PWA Mobile — M3
+        </div>
+
+        <a class="nav-item" data-tab="module3" id="nav-module3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/>
+          </svg>
+          <span>My AQI Exposure History</span>
+          <span class="nav-badge">M3</span>
+        </a>
+
+        <a class="nav-item" data-tab="module3_prefs" id="nav-module3-prefs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span>Notification Preferences</span>
+          <span class="nav-badge">Alerts</span>
         </a>
 
         <a class="nav-item" data-tab="module2_retrain" id="nav-module2-retrain">
@@ -1033,6 +1061,10 @@
             <div style="margin-top:10px; font-size:0.75rem; color:#1e293b; text-align:center;">
               Click &quot;Analyze Route Exposure&quot; to render both route corridors on the map. Station background nodes show live AQI readings.
             </div>
+
+            <!-- M3: Route Advisory Save to History -->
+            <!-- M3: Route Advisory Save to History -->
+            <div id="route-save-history-container" style="padding: 12px 0 4px;"></div>
           </div>
 
         </section>
@@ -1154,9 +1186,83 @@
 
         </section>
 
+        <!-- ===================================================================
+             TAB M3-A: PERSONAL EXPOSURE HISTORY (Milestone 3 PWA)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module3">
+          <div class="exposure-history-container">
+            <div style="text-align:center; padding:48px 24px; color:#64748b;">
+              <div style="font-size:2.5rem; margin-bottom:12px;">📊</div>
+              <div style="font-weight:600;">Loading exposure history...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             TAB M3-B: NOTIFICATION PREFERENCES (Milestone 3 PWA)
+             =================================================================== -->
+        <section class="tab-content" id="tab-module3-prefs">
+          <div style="text-align:center; padding:48px 24px; color:#64748b;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">🔔</div>
+            <div style="font-weight:600;">Loading notification settings...</div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
+
+  <!-- ── PWA Install Banner (Milestone 3) ── -->
+  <div class="pwa-install-banner hidden" id="pwa-install-banner" role="dialog" aria-label="Install AirSense App">
+    <div class="pwa-install-banner-left">
+      <div class="pwa-install-icon">🌿</div>
+      <div class="pwa-install-text">
+        <h4>Install AirSense AI</h4>
+        <p>Add to home screen for offline access &amp; real-time AQI alerts</p>
+      </div>
+    </div>
+    <div class="pwa-install-actions">
+      <button class="pwa-install-btn" id="btn-pwa-install" onclick="PWAManager.triggerInstall()">Install App</button>
+      <button class="pwa-dismiss-btn" id="btn-pwa-dismiss" onclick="PWAManager.dismissInstall()">Not now</button>
+    </div>
+  </div>
+
+  <!-- ── Mobile Bottom Navigation Bar (Milestone 3) ── -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav" role="navigation" aria-label="Mobile Navigation">
+    <div class="mobile-bottom-nav-inner">
+      <button class="mobile-nav-item active" data-tab="overview" id="mob-nav-overview" onclick="App.switchTab('overview')">
+        <svg class="mob-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/>
+          <rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+        </svg>
+        <span class="mob-nav-label">Dashboard</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="module1" id="mob-nav-module1" onclick="App.switchTab('module1')">
+        <svg class="mob-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="mob-nav-label">AQI Map</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="module2_route" id="mob-nav-route" onclick="App.switchTab('module2_route')">
+        <svg class="mob-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+        </svg>
+        <span class="mob-nav-label">Routes</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="module3" id="mob-nav-history" onclick="App.switchTab('module3')">
+        <svg class="mob-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/>
+        </svg>
+        <span class="mob-nav-label">My AQI</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="module3_prefs" id="mob-nav-prefs" onclick="App.switchTab('module3_prefs')">
+        <svg class="mob-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="mob-nav-label">Alerts</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
@@ -1169,9 +1275,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
   <!-- Application Modules -->
-  <script src="/static/js/api.js?v=3.3"></script>
-  <script src="/static/js/charts.js?v=3.3"></script>
-  <script src="/static/js/map.js?v=3.4"></script>
-  <script src="/static/js/app.js?v=3.3"></script>
+  <script src="/static/js/api.js?v=4.0"></script>
+  <script src="/static/js/charts.js?v=4.0"></script>
+  <script src="/static/js/map.js?v=4.0"></script>
+  <script src="/static/js/app.js?v=4.0"></script>
 </body>
 </html>

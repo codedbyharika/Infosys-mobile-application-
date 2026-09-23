@@ -1,0 +1,44 @@
+{
+  "name": "AirSense AI — Environmental Intelligence",
+  "short_name": "AirSense",
+  "description": "AI-Powered Air Quality Index monitoring, predictive forecasting, and smart mobility route advisor for Pune urban region.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "lang": "en",
+  "scope": "/",
+  "categories": ["health", "environment", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230f172a'/%3E%3Ccircle cx='96' cy='96' r='60' fill='none' stroke='%2338bdf8' stroke-width='6' opacity='0.3'/%3E%3Ccircle cx='96' cy='96' r='40' fill='none' stroke='%2338bdf8' stroke-width='4' opacity='0.5'/%3E%3Ccircle cx='96' cy='96' r='20' fill='%2338bdf8' opacity='0.9'/%3E%3Cpath d='M96 40 L96 56 M96 136 L96 152 M40 96 L56 96 M136 96 L152 96' stroke='%2338bdf8' stroke-width='3' stroke-linecap='round' opacity='0.6'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230f172a'/%3E%3Ccircle cx='256' cy='256' r='160' fill='none' stroke='%2338bdf8' stroke-width='12' opacity='0.3'/%3E%3Ccircle cx='256' cy='256' r='110' fill='none' stroke='%2338bdf8' stroke-width='8' opacity='0.5'/%3E%3Ccircle cx='256' cy='256' r='55' fill='%2338bdf8' opacity='0.9'/%3E%3Cpath d='M256 110 L256 150 M256 362 L256 402 M110 256 L150 256 M362 256 L402 256' stroke='%2338bdf8' stroke-width='8' stroke-linecap='round' opacity='0.6'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Live AQI Map",
+      "short_name": "Map",
+      "description": "Open the real-time pollution map",
+      "url": "/?tab=module1",
+      "icons": []
+    },
+    {
+      "name": "My Exposure History",
+      "short_name": "History",
+      "description": "View your personal AQI exposure log",
+      "url": "/?tab=module3",
+      "icons": []
+    }
+  ]
+}
