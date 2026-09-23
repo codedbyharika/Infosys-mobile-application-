@@ -2038,11 +2038,19 @@ App.switchTab = function(tabId) {
     item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
   });
 
-  // M3 specific tab rendering
+  // M3 specific tab rendering (React 18 components with fallback)
   if (tabId === 'module3') {
-    ExposureHistory.renderHistoryTab();
+    if (window.ReactMountManager) {
+      window.ReactMountManager.renderHistoryTab();
+    } else {
+      ExposureHistory.renderHistoryTab();
+    }
   } else if (tabId === 'module3_prefs') {
-    NotificationPrefs.renderPrefsTab();
+    if (window.ReactMountManager) {
+      window.ReactMountManager.renderPrefsTab();
+    } else {
+      NotificationPrefs.renderPrefsTab();
+    }
   }
 
   // Update M3 titles
