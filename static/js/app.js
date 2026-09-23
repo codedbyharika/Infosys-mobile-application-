@@ -1829,12 +1829,15 @@ const PWAManager = {
   _dismissed: false,
 
   init() {
-    // Register service worker
+    // Register service worker with root scope
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/sw.js')
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .catch(() => navigator.serviceWorker.register('/static/sw.js'))
         .then(reg => {
-          console.log('[PWA] Service Worker registered:', reg.scope);
-          App.showToast('AirSense PWA ready — app can be installed.', 'info');
+          if (reg) {
+            console.log('[PWA] Service Worker registered with scope:', reg.scope);
+            App.showToast('AirSense PWA ready — app can be installed.', 'info');
+          }
         })
         .catch(err => console.warn('[PWA] SW registration failed:', err));
     }

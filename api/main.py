@@ -497,3 +497,28 @@ def serve_index():
         "docs_url": "/docs"
     }
 
+
+@app.get("/sw.js", include_in_schema=False)
+def serve_service_worker():
+    sw_file = os.path.join(STATIC_DIR, "sw.js")
+    if os.path.exists(sw_file):
+        return FileResponse(
+            sw_file,
+            media_type="application/javascript",
+            headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"}
+        )
+    return JSONResponse(status_code=404, content={"detail": "Service worker not found"})
+
+
+@app.get("/manifest.json", include_in_schema=False)
+def serve_manifest():
+    manifest_file = os.path.join(STATIC_DIR, "manifest.json")
+    if os.path.exists(manifest_file):
+        return FileResponse(
+            manifest_file,
+            media_type="application/manifest+json",
+            headers={"Cache-Control": "no-cache"}
+        )
+    return JSONResponse(status_code=404, content={"detail": "Manifest not found"})
+
+

@@ -105,6 +105,13 @@ The platform is organized strictly across **4 Core Engineering Modules** (Weeks 
 - **8-Step Visual Pipeline Flow:** Visual execution flow from GPS coordinate capture to advisory notification dispatch.
 - **Live Automated QA Test Suite:** Integrated testing harness directly executable from both the web interface and the CLI.
 
+### 📱 Milestone 3: Progressive Web Application (PWA) & Mobile Dashboard (Weeks 9–10)
+- **Native Mobile Experience:** Responsive mobile-first interface featuring a sticky bottom navigation bar (Dashboard, AQI Map, Routes, My AQI, Alerts) and app install prompt (`beforeinstallprompt`).
+- **Offline Reliability & Service Worker:** Cache-first strategy for static resources, network-first for telemetry APIs, and full offline fallback caching (`sw.js`, `manifest.json`).
+- **Personal AQI Exposure History:** Persistent journal (`localStorage`) calculating cumulative inhaled particulate mass ($\mu\text{g}$), trip exposure scores, filterable by transit mode (Car, Metro, Bus, Bike, Walk) with CSV export.
+- **Dynamic Travel Advisory Overlays:** Real-time color-coded waypoint circles and health advisories projected onto the Leaflet mobility map with instant "Save to History" logging.
+- **Notification Preference Management:** Interactive AQI hazard threshold slider (50–300 AQI), sensitive health profile configuration, browser Web Push alerts, and threshold breach simulations.
+
 ---
 
 ## 📁 Repository Structure
