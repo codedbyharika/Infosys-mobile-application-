@@ -5,10 +5,15 @@ import '../models/forecast_model.dart';
 import '../models/route_exposure_model.dart';
 import '../models/trip_record_model.dart';
 import '../models/kpi_summary_model.dart';
+import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 
 class AppState extends ChangeNotifier {
+  // Authentication State
+  UserModel? _currentUser;
+  bool _isLoggedIn = false;
+
   // State variables
   List<StationModel> _stations = [];
   StationModel? _selectedStation;
@@ -32,6 +37,8 @@ class AppState extends ChangeNotifier {
   String _routeHealthProfile = 'General User';
 
   // Getters
+  UserModel? get currentUser => _currentUser;
+  bool get isLoggedIn => _isLoggedIn;
   List<StationModel> get stations => _stations;
   StationModel? get selectedStation => _selectedStation;
   KpiSummaryModel? get kpiSummary => _kpiSummary;
@@ -75,6 +82,14 @@ class AppState extends ChangeNotifier {
 
   // Initialization
   Future<void> init() async {
+    // 0. Load saved User Session
+    final savedUser = await StorageService.loadUserSession();
+    if (savedUser != null) {
+      _currentUser = savedUser;
+      _isLoggedIn = true;
+      _routeHealthProfile = savedUser.healthProfile;
+    }
+
     // 1. Load saved API base URL
     final savedUrl = await StorageService.loadApiBaseUrl();
     if (savedUrl != null && savedUrl.isNotEmpty) {
@@ -285,5 +300,124 @@ class AppState extends ChangeNotifier {
         .replaceAll('_', ' ')
         .replaceAll('BopadiSquare', 'Bopodi Square')
         .trim();
+  }
+
+  // ── Authentication Methods ───────────────────────────────────────────────
+  Future<String?> login(String email, String password, {bool rememberMe = true}) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+
+    if (cleanEmail.isEmpty || cleanPassword.isEmpty) {
+      return 'Please enter both email and password.';
+    }
+
+    try {
+      final registeredUsers = await StorageService.loadRegisteredUsers();
+      if (!registeredUsers.containsKey(cleanEmail)) {
+        return 'No account found with this email. Please sign up.';
+      }
+
+      final userData = registeredUsers[cleanEmail]!;
+      if (userData['password'] != cleanPassword) {
+        return 'Incorrect password. Please try again.';
+      }
+
+      final user = UserModel(
+        id: 'usr_${cleanEmail.hashCode.abs()}',
+        email: cleanEmail,
+        name: userData['name'] ?? 'AirSense User',
+        healthProfile: userData['healthProfile'] ?? _routeHealthProfile,
+        lastLogin: DateTime.now(),
+      );
+
+      _currentUser = user;
+      _isLoggedIn = true;
+      _routeHealthProfile = user.healthProfile;
+
+      if (rememberMe) {
+        await StorageService.saveUserSession(user);
+      } else {
+        await StorageService.clearUserSession();
+      }
+
+      notifyListeners();
+      return null; // Success
+    } catch (e) {
+      return 'Login failed: $e';
+    }
+  }
+
+  Future<String?> register({
+    required String email,
+    required String password,
+    required String name,
+    required String healthProfile,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+    final cleanName = name.trim();
+
+    if (cleanEmail.isEmpty || cleanPassword.isEmpty || cleanName.isEmpty) {
+      return 'Please fill in all required fields.';
+    }
+
+    if (!cleanEmail.contains('@') || !cleanEmail.contains('.')) {
+      return 'Please enter a valid email address.';
+    }
+
+    if (cleanPassword.length < 6) {
+      return 'Password must be at least 6 characters long.';
+    }
+
+    try {
+      final registeredUsers = await StorageService.loadRegisteredUsers();
+      if (registeredUsers.containsKey(cleanEmail)) {
+        return 'An account with this email already exists. Please sign in.';
+      }
+
+      registeredUsers[cleanEmail] = {
+        'password': cleanPassword,
+        'name': cleanName,
+        'healthProfile': healthProfile,
+      };
+      await StorageService.saveRegisteredUsers(registeredUsers);
+
+      final user = UserModel(
+        id: 'usr_${cleanEmail.hashCode.abs()}',
+        email: cleanEmail,
+        name: cleanName,
+        healthProfile: healthProfile,
+        lastLogin: DateTime.now(),
+      );
+
+      _currentUser = user;
+      _isLoggedIn = true;
+      _routeHealthProfile = healthProfile;
+      await StorageService.saveUserSession(user);
+
+      notifyListeners();
+      return null; // Success
+    } catch (e) {
+      return 'Registration failed: $e';
+    }
+  }
+
+  Future<void> logout() async {
+    _currentUser = null;
+    _isLoggedIn = false;
+    await StorageService.clearUserSession();
+    notifyListeners();
+  }
+
+  void continueAsGuest() {
+    _currentUser = const UserModel(
+      id: 'guest_user',
+      email: 'guest@ecoair.org',
+      name: 'Guest Explorer',
+      healthProfile: 'General User',
+      isGuest: true,
+    );
+    _isLoggedIn = true;
+    notifyListeners();
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_record_model.dart';
+import '../models/user_model.dart';
 
 class NotificationPrefs {
   final int aqiThreshold;
@@ -165,5 +166,83 @@ class StorageService {
   static Future<void> saveSelectedStation(String stationId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keySelectedStation, stationId);
+  }
+
+  // ── User Session & Authentication ──────────────────────────────────────────
+  static const String _keyUserSession = 'ecoair_user_session';
+  static const String _keyRegisteredUsers = 'ecoair_registered_users';
+
+  static Future<UserModel?> loadUserSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? jsonStr = prefs.getString(_keyUserSession);
+      if (jsonStr != null && jsonStr.isNotEmpty) {
+        return UserModel.fromJson(jsonDecode(jsonStr));
+      }
+    } catch (e) {
+      print('[StorageService] Error loading user session: $e');
+    }
+    return null;
+  }
+
+  static Future<void> saveUserSession(UserModel user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyUserSession, jsonEncode(user.toJson()));
+    } catch (e) {
+      print('[StorageService] Error saving user session: $e');
+    }
+  }
+
+  static Future<void> clearUserSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_keyUserSession);
+    } catch (e) {
+      print('[StorageService] Error clearing user session: $e');
+    }
+  }
+
+  static Future<Map<String, Map<String, dynamic>>> loadRegisteredUsers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? jsonStr = prefs.getString(_keyRegisteredUsers);
+      if (jsonStr != null && jsonStr.isNotEmpty) {
+        final Map<String, dynamic> raw = jsonDecode(jsonStr);
+        return raw.map((k, v) => MapEntry(k.toLowerCase(), Map<String, dynamic>.from(v as Map)));
+      }
+    } catch (e) {
+      print('[StorageService] Error loading registered users: $e');
+    }
+
+    // Default demo accounts
+    final defaultUsers = <String, Map<String, dynamic>>{
+      'ecoair@infosys.com': {
+        'password': 'password123',
+        'name': 'Harika K.',
+        'healthProfile': 'General User',
+      },
+      'asthma.care@airsense.org': {
+        'password': 'password123',
+        'name': 'Dr. Rohan Verma',
+        'healthProfile': 'Asthmatic / Respiratory',
+      },
+      'demo@ecoair.org': {
+        'password': 'demo123',
+        'name': 'AirSense Explorer',
+        'healthProfile': 'General User',
+      },
+    };
+    await saveRegisteredUsers(defaultUsers);
+    return defaultUsers;
+  }
+
+  static Future<void> saveRegisteredUsers(Map<String, Map<String, dynamic>> users) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyRegisteredUsers, jsonEncode(users));
+    } catch (e) {
+      print('[StorageService] Error saving registered users: $e');
+    }
   }
 }

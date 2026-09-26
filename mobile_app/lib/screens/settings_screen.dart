@@ -45,6 +45,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 0. User Profile & Account Card
+          _buildUserProfileCard(context),
+
           // 1. Notification Preferences Card
           _buildNotificationPrefsCard(context, prefs),
 
@@ -58,6 +61,182 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildAboutAppCard(),
 
           const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // User Profile & Account Card
+  Widget _buildUserProfileCard(BuildContext context) {
+    final user = widget.state.currentUser;
+    final isGuest = user?.isGuest ?? true;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: CpcbTheme.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: isGuest ? const Color(0xFF64748B) : CpcbTheme.primaryBlue,
+                child: Text(
+                  user?.initials ?? 'G',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            user?.name ?? 'Guest Explorer',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: CpcbTheme.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isGuest
+                                ? const Color(0xFFF1F5F9)
+                                : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isGuest
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFFBFDBFE),
+                            ),
+                          ),
+                          child: Text(
+                            isGuest ? 'Guest' : 'Verified',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isGuest
+                                  ? const Color(0xFF64748B)
+                                  : CpcbTheme.primaryBlue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user?.email.isNotEmpty == true
+                          ? user!.email
+                          : 'Limited offline / demo mode',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: CpcbTheme.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.health_and_safety_outlined,
+                          size: 13,
+                          color: Color(0xFF0284C7),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Sensitivity: ${user?.healthProfile ?? widget.state.notificationPrefs.healthProfile}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0284C7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: CpcbTheme.borderSubtle),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _confirmSignOut(context),
+              icon: Icon(
+                isGuest ? Icons.login : Icons.logout_rounded,
+                size: 16,
+                color: isGuest ? CpcbTheme.primaryBlue : const Color(0xFFDC2626),
+              ),
+              label: Text(
+                isGuest ? 'Log In with Registered Account' : 'Sign Out / Switch User',
+                style: TextStyle(
+                  color: isGuest ? CpcbTheme.primaryBlue : const Color(0xFFDC2626),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: isGuest ? const Color(0xFFBFDBFE) : const Color(0xFFFECACA),
+                ),
+                backgroundColor: isGuest ? const Color(0xFFF8FAFC) : const Color(0xFFFEF2F2),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        content: const Text(
+          'Are you sure you want to sign out of EcoAir Intelligence? You will return to the Login screen.',
+          style: TextStyle(fontSize: 13, color: CpcbTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel', style: TextStyle(color: CpcbTheme.textMuted)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await widget.state.logout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
         ],
       ),
     );

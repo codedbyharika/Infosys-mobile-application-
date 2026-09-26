@@ -139,7 +139,94 @@ class _MainScreenState extends State<MainScreen> {
               );
             },
           ),
-          const SizedBox(width: 4),
+
+          // User Profile Quick Menu
+          PopupMenuButton<String>(
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundColor: (state.currentUser?.isGuest ?? true)
+                  ? const Color(0xFF64748B)
+                  : CpcbTheme.primaryBlue,
+              child: Text(
+                state.currentUser?.initials ?? 'G',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            tooltip: 'Account Profile (${state.currentUser?.name ?? "Guest"})',
+            onSelected: (val) async {
+              if (val == 'settings') {
+                _onTabTapped(4); // Switch to Alerts & Settings tab
+              } else if (val == 'logout') {
+                await state.logout();
+              }
+            },
+            itemBuilder: (ctx) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      state.currentUser?.name ?? 'Guest Explorer',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: CpcbTheme.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      state.currentUser?.email.isNotEmpty == true
+                          ? state.currentUser!.email
+                          : 'Guest Mode',
+                      style: const TextStyle(fontSize: 11, color: CpcbTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Sensitivity: ${state.currentUser?.healthProfile ?? "General"}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0284C7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.tune_outlined, size: 16, color: CpcbTheme.textSecondary),
+                    SizedBox(width: 8),
+                    Text('Preferences & Alert Config', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(
+                      (state.currentUser?.isGuest ?? true) ? Icons.login : Icons.logout,
+                      size: 16,
+                      color: const Color(0xFFDC2626),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      (state.currentUser?.isGuest ?? true) ? 'Sign In' : 'Sign Out',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626), fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: IndexedStack(

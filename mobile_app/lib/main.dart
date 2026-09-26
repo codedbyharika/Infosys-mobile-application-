@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'config/cpcb_theme.dart';
 import 'providers/app_state.dart';
+import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 
 void main() async {
@@ -26,9 +27,12 @@ class EcoAirApp extends StatelessWidget {
           title: 'EcoAir Intelligence',
           debugShowCheckedModeBanner: false,
           theme: CpcbTheme.lightTheme,
-          home: MainScreen(state: appState),
+          home: appState.isLoggedIn
+              ? MainScreen(state: appState)
+              : LoginScreen(state: appState),
         );
       },
     );
   }
 }
+
