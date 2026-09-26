@@ -9,6 +9,11 @@
 (function () {
   'use strict';
 
+  if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+    console.warn('[ReactComponents] React or ReactDOM not loaded from CDN. Falling back to native vanilla JS UI.');
+    return;
+  }
+
   const { useState, useEffect, useCallback, useMemo } = React;
 
   // ─────────────────────────────────────────────────────────────────────────────

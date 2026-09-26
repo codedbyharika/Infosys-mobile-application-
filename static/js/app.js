@@ -259,6 +259,11 @@ const App = {
   switchTab(tabId) {
     this.state.activeTab = tabId;
 
+    // Reset scroll to top of viewport
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) contentArea.scrollTop = 0;
+
     // Update sidebar navigation active state
     document.querySelectorAll('.nav-item').forEach(item => {
       const itemTab = item.getAttribute('data-tab');
@@ -1650,108 +1655,185 @@ const NotificationPrefs = {
     return permission;
   },
 
+  init() {
+    this.syncUI();
+  },
+
+  syncUI() {
+    const prefs = this.getPrefs();
+    const pushStatus = this.getPushStatus();
+    const isGranted = pushStatus === 'granted';
+
+    // 1. Slider & numerical value
+    const slider = document.getElementById('notif-threshold-slider');
+    if (slider) {
+      slider.value = prefs.aqiThreshold;
+      this._onThresholdChange(prefs.aqiThreshold);
+    }
+
+    // 2. Alert Chips & Switches
+    if (prefs.alerts) {
+      Object.keys(prefs.alerts).forEach(alertId => {
+        const chip = document.getElementById(`chip-${alertId}`);
+        if (chip) chip.classList.toggle('active', !!prefs.alerts[alertId]);
+      });
+      const toggleDaily = document.getElementById('toggle-daily-digest');
+      if (toggleDaily) toggleDaily.checked = !!prefs.alerts.morningForecast;
+      const toggleRoute = document.getElementById('toggle-route-warn');
+      if (toggleRoute) toggleRoute.checked = !!prefs.alerts.travelAdvisory;
+    }
+
+    // 3. Health Profile Cards
+    const profileCards = document.querySelectorAll('#profile-cards-grid .profile-card');
+    profileCards.forEach(c => c.classList.remove('selected'));
+    const safeProfileId = (prefs.healthProfile || 'General User').replace(/[^a-z0-9]/gi, '-');
+    const activeCard = document.getElementById(`profile-card-${safeProfileId}`) ||
+                       document.getElementById('profile-card-General-User') ||
+                       document.getElementById('profile-card-general');
+    if (activeCard) activeCard.classList.add('selected');
+
+    // Sync header dropdowns
+    const headerSelect = document.getElementById('header-health-profile-select');
+    if (headerSelect && prefs.healthProfile) headerSelect.value = prefs.healthProfile;
+    const inPageSelect = document.getElementById('health-profile-select');
+    if (inPageSelect && prefs.healthProfile) inPageSelect.value = prefs.healthProfile;
+
+    // 4. Push Permission Banner
+    const permBtn = document.getElementById('btn-push-permission');
+    const permIcon = document.getElementById('push-perm-icon-display');
+    const permTitle = document.getElementById('push-perm-title');
+    const permDesc = document.getElementById('push-perm-desc');
+    if (permBtn) {
+      if (isGranted) {
+        permBtn.classList.add('granted');
+        permBtn.textContent = '✓ Push Alerts Active';
+        if (permIcon) permIcon.textContent = '✅';
+        if (permTitle) permTitle.textContent = 'Push Notifications Active';
+        if (permDesc) permDesc.textContent = 'You are receiving real-time AQI threshold breach alerts and morning forecasts.';
+      } else {
+        permBtn.classList.remove('granted');
+        permBtn.textContent = 'Enable Push Alerts';
+        if (permIcon) permIcon.textContent = '🔔';
+        if (permTitle) permTitle.textContent = 'Web Push Notifications';
+        if (permDesc) permDesc.textContent = 'Get instant AQI threshold alerts and hazardous route warnings directly on your device.';
+      }
+    }
+  },
+
   renderPrefsTab() {
     const container = document.getElementById('tab-module3_prefs') || document.getElementById('tab-module3-prefs');
     if (!container) return;
+
+    // If pre-rendered elements exist in DOM, simply synchronize them
+    if (document.getElementById('notif-threshold-slider')) {
+      this.syncUI();
+      return;
+    }
 
     const prefs = this.getPrefs();
     const pushStatus = this.getPushStatus();
     const isGranted = pushStatus === 'granted';
     const profiles = [
-      { id: 'General User', icon: '👤', name: 'General User' },
-      { id: 'Asthmatic / Respiratory', icon: '💨', name: 'Asthmatic / Respiratory' },
-      { id: 'Elderly (60+ Years)', icon: '👴', name: 'Elderly (60+)' },
-      { id: 'Child (Under 12 Years)', icon: '👶', name: 'Child (<12)' }
+      { id: 'General User', icon: '👤', name: 'General Public', sub: 'Standard ventilation (1.0×)' },
+      { id: 'Asthmatic / Respiratory', icon: '💨', name: 'Asthmatic / Resp.', sub: 'High sensitivity (1.4×)' },
+      { id: 'Elderly (60+ Years)', icon: '👴', name: 'Senior Citizen', sub: 'Elevated risk (1.3×)' },
+      { id: 'Child (Under 12 Years)', icon: '👶', name: 'Children (<12)', sub: 'High inhalation rate (1.2×)' }
     ];
 
     const thresholdColor = prefs.aqiThreshold <= 50 ? '#059669' : prefs.aqiThreshold <= 100 ? '#d97706' : prefs.aqiThreshold <= 150 ? '#ea580c' : '#dc2626';
     const thresholdLabel = prefs.aqiThreshold <= 50 ? 'Good' : prefs.aqiThreshold <= 100 ? 'Moderate' : prefs.aqiThreshold <= 150 ? 'Sensitive' : 'Poor';
 
     container.innerHTML = `
-      <div style="max-width: 860px;">
-        <div class="m3-section-header" style="margin-bottom:24px;">
-          <span class="m3-section-badge">🔔 M3 — Notifications</span>
+      <div style="max-width: 880px; margin: 0 auto;">
+        <div class="m3-section-header" style="margin-bottom:20px;">
+          <span class="m3-section-badge">🔔 PWA Real-Time Alerts</span>
           <div>
-            <div class="m3-section-title">Notification Preference Management</div>
-            <div class="m3-section-sub">Customize AQI alerts, health profile, and push notification settings.</div>
+            <div class="m3-section-title">Notification &amp; Alert Preference Management</div>
+            <div class="m3-section-sub">Configure automated AQI hazard warnings, health profile vulnerability, and push notifications.</div>
           </div>
         </div>
 
-        <!-- Push Permission Banner -->
-        <div class="push-permission-banner">
-          <span class="push-perm-icon">${isGranted ? '✅' : '🔔'}</span>
-          <div class="push-perm-text">
-            <h4>${isGranted ? 'Push Notifications Active' : 'Enable Push Notifications'}</h4>
-            <p>${isGranted ? 'You will receive AQI threshold alerts and morning forecasts.' : 'Get real-time AQI threshold alerts directly on your device, even when the app is closed.'}</p>
+        <div class="push-permission-banner" id="pwa-push-banner">
+          <span class="push-perm-icon" id="push-perm-icon-display">${isGranted ? '✅' : '🔔'}</span>
+          <div class="push-perm-text" style="flex:1;">
+            <h4 id="push-perm-title">${isGranted ? 'Push Notifications Active' : 'Web Push Notifications'}</h4>
+            <p id="push-perm-desc">${isGranted ? 'You are receiving real-time AQI threshold breach alerts and morning forecasts.' : 'Get instant AQI threshold alerts directly on your device, even when the browser is minimized.'}</p>
           </div>
-          <button class="push-enable-btn ${isGranted ? 'granted' : ''}" id="btn-push-permission"
-            onclick="NotificationPrefs.requestPushPermission()">
-            ${isGranted ? '✓ Notifications On' : 'Enable Alerts'}
-          </button>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <button class="push-enable-btn ${isGranted ? 'granted' : ''}" id="btn-push-permission"
+              onclick="NotificationPrefs.requestPushPermission()">
+              ${isGranted ? '✓ Push Alerts Active' : 'Enable Push Alerts'}
+            </button>
+            <button type="button" class="export-csv-btn" onclick="NotificationPrefs.triggerTestNotification()" style="margin:0; background:#ffffff; color:#2563eb; border-color:#93c5fd; font-weight:700;">
+              ⚡ Test Alert
+            </button>
+          </div>
         </div>
 
         <div class="notif-prefs-grid">
-          <!-- AQI Threshold Card -->
           <div class="notif-card">
             <div class="notif-card-title">
-              <div class="notif-card-icon" style="background:rgba(239,68,68,0.1);">⚠️</div>
-              AQI Alert Threshold
+              <div class="notif-card-icon" style="background:rgba(239,68,68,0.1); color:#ef4444;">⚠️</div>
+              AQI Hazard Alert Threshold
             </div>
-            <p style="font-size:0.78rem; color:#64748b; margin-bottom:12px;">Receive an alert when AQI exceeds this level at any monitored station.</p>
+            <p style="font-size:0.78rem; color:#64748b; margin-bottom:12px;">Trigger an automated warning when local or route-evaluated AQI exceeds this hazard limit.</p>
             <div class="threshold-slider-wrap">
-              <div class="threshold-slider-labels"><span>0 — Good</span><span>100</span><span>200</span><span>300 — Hazardous</span></div>
+              <div class="threshold-slider-labels"><span>50 (Good)</span><span>100</span><span>150</span><span>200</span><span>300 (Severe)</span></div>
               <input type="range" class="threshold-slider" id="notif-threshold-slider"
-                min="0" max="300" step="10" value="${prefs.aqiThreshold}"
+                min="50" max="300" step="10" value="${prefs.aqiThreshold}"
                 oninput="NotificationPrefs._onThresholdChange(this.value)">
             </div>
-            <div class="threshold-value-display">
-              <span class="threshold-val-num" id="threshold-display-num" style="color:${thresholdColor};">${prefs.aqiThreshold}</span>
-              <div>
-                <div class="threshold-val-label" id="threshold-display-label" style="color:${thresholdColor};">${thresholdLabel}</div>
-                <div style="font-size:0.68rem; color:#94a3b8;">Alert me at this AQI level</div>
+            <div class="threshold-value-display" style="width:100%; box-sizing:border-box; justify-content:space-between;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="threshold-val-num" id="threshold-display-num" style="color:${thresholdColor};">${prefs.aqiThreshold}</span>
+                <span style="font-size:0.75rem; font-weight:700; color:#64748b;">AQI</span>
+              </div>
+              <div style="text-align:right;">
+                <div class="threshold-val-label" id="threshold-display-label" style="color:${thresholdColor}; font-weight:700;">${thresholdLabel}</div>
+                <div style="font-size:0.68rem; color:#94a3b8;">Alert triggered at or above this level</div>
               </div>
             </div>
           </div>
 
-          <!-- Alert Types Card -->
           <div class="notif-card">
             <div class="notif-card-title">
-              <div class="notif-card-icon" style="background:rgba(37,99,235,0.1);">📋</div>
-              Alert Types
+              <div class="notif-card-icon" style="background:rgba(37,99,235,0.1); color:#2563eb;">📋</div>
+              Alert Types &amp; Channels
             </div>
+            <p style="font-size:0.78rem; color:#64748b; margin-bottom:10px;">Select which critical environmental notices are pushed to your screen.</p>
             <div class="alert-type-grid" id="alert-type-grid">
               ${[
                 { id: 'morningForecast', icon: '🌅', label: 'Morning Forecast' },
                 { id: 'thresholdBreach', icon: '⚠️', label: 'Threshold Breach' },
                 { id: 'travelAdvisory', icon: '🗺️', label: 'Travel Advisory' },
-                { id: 'weeklyReport', icon: '📊', label: 'Weekly Report' }
+                { id: 'weeklyReport', icon: '📊', label: 'Weekly Digest' }
               ].map(a => `
-                <div class="alert-chip ${prefs.alerts[a.id] ? 'active' : ''}" id="chip-${a.id}"
+                <div class="alert-chip ${prefs.alerts && prefs.alerts[a.id] ? 'active' : ''}" id="chip-${a.id}"
                   onclick="NotificationPrefs._toggleAlert('${a.id}')">
                   <span class="alert-chip-icon">${a.icon}</span>
                   <span class="alert-chip-text">${a.label}</span>
                 </div>
               `).join('')}
             </div>
-            <div style="margin-top:14px;">
+            <div style="margin-top:16px;">
               <div class="toggle-row">
                 <div>
-                  <div class="toggle-label">Daily Summary Digest</div>
-                  <div class="toggle-sub">7 AM AQI snapshot for all stations</div>
+                  <div class="toggle-label">Daily 7:30 AM Forecast Digest</div>
+                  <div class="toggle-sub">Morning Neural GRU diurnal snapshot for monitored stations</div>
                 </div>
                 <label class="pwa-toggle">
-                  <input type="checkbox" id="toggle-daily-digest" ${prefs.alerts.morningForecast ? 'checked' : ''}
+                  <input type="checkbox" id="toggle-daily-digest" ${prefs.alerts && prefs.alerts.morningForecast ? 'checked' : ''}
                     onchange="NotificationPrefs._toggleAlert('morningForecast')">
                   <span class="pwa-toggle-slider"></span>
                 </label>
               </div>
               <div class="toggle-row">
                 <div>
-                  <div class="toggle-label">Route Safety Warnings</div>
-                  <div class="toggle-sub">Before high-exposure journeys</div>
+                  <div class="toggle-label">Route High-Pollution Corridor Warnings</div>
+                  <div class="toggle-sub">Live alerts when planned transit crosses severe particulate hotspots</div>
                 </div>
                 <label class="pwa-toggle">
-                  <input type="checkbox" id="toggle-route-warn" ${prefs.alerts.travelAdvisory ? 'checked' : ''}
+                  <input type="checkbox" id="toggle-route-warn" ${prefs.alerts && prefs.alerts.travelAdvisory ? 'checked' : ''}
                     onchange="NotificationPrefs._toggleAlert('travelAdvisory')">
                   <span class="pwa-toggle-slider"></span>
                 </label>
@@ -1759,13 +1841,12 @@ const NotificationPrefs = {
             </div>
           </div>
 
-          <!-- Health Profile Card -->
           <div class="notif-card" style="grid-column: 1 / -1;">
             <div class="notif-card-title">
-              <div class="notif-card-icon" style="background:rgba(5,150,105,0.1);">❤️</div>
-              Health Sensitivity Profile
+              <div class="notif-card-icon" style="background:rgba(5,150,105,0.1); color:#059669;">❤️</div>
+              Health Vulnerability &amp; Inhalation Sensitivity Profile
             </div>
-            <p style="font-size:0.78rem; color:#64748b; margin-bottom:8px;">Your profile personalizes AQI thresholds and travel recommendations.</p>
+            <p style="font-size:0.78rem; color:#64748b; margin-bottom:12px;">Personalized profiles adjust inhalation dosage calculations (µg intake) and lower hazard threshold limits according to physiological susceptibility.</p>
             <div class="profile-cards-grid" id="profile-cards-grid">
               ${profiles.map(p => `
                 <div class="profile-card ${prefs.healthProfile === p.id ? 'selected' : ''}"
@@ -1773,8 +1854,35 @@ const NotificationPrefs = {
                   onclick="NotificationPrefs._selectProfile('${p.id}')">
                   <span class="profile-card-icon">${p.icon}</span>
                   <span class="profile-card-name">${p.name}</span>
+                  <span style="font-size:0.68rem; color:#64748b;">${p.sub}</span>
                 </div>
               `).join('')}
+            </div>
+          </div>
+
+          <div class="notif-card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div class="notif-card-title" style="margin-bottom:0;">
+                <div class="notif-card-icon" style="background:rgba(245,158,11,0.1); color:#d97706;">🔔</div>
+                Recent Alerts &amp; Delivery Log
+              </div>
+              <button type="button" class="export-csv-btn" onclick="NotificationPrefs.clearAlertHistory()" style="margin:0; padding:4px 10px; font-size:0.72rem; min-height:28px;">Clear Log</button>
+            </div>
+            <div class="notifications-feed" id="alerts-history-feed" style="max-height: 220px; overflow-y: auto;">
+              <div class="notification-item warning">
+                <div class="notif-text-col">
+                  <h4>⚠️ Moderate AQI Advisory — Shivajinagar</h4>
+                  <p>Station recorded AQI 98 exceeding sensitive threshold. Outdoor activities normal for general public.</p>
+                </div>
+                <span class="notif-time">Just now</span>
+              </div>
+              <div class="notification-item info">
+                <div class="notif-text-col">
+                  <h4>🌅 Diurnal Forecast Update</h4>
+                  <p>Morning forecast model initialized. Afternoon peak expected around 17:00 PM.</p>
+                </div>
+                <span class="notif-time">1h ago</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1784,50 +1892,127 @@ const NotificationPrefs = {
         </button>
       </div>
     `;
+    this.syncUI();
+  },
+
+  triggerTestNotification() {
+    const prefs = this.getPrefs();
+    const stationName = (window.App && App.state && App.state.selectedStationKey) ? App.state.selectedStationKey.replace(/_/g, ' ') : 'Shivajinagar';
+    const testAqi = Math.max(prefs.aqiThreshold + 18, 125);
+    
+    // In-app feedback toast
+    if (window.App && App.showToast) {
+      App.showToast(`🚨 Simulated Alert: ${stationName} AQI is ${testAqi} (Exceeds your ${prefs.aqiThreshold} threshold!)`, 'warning');
+    }
+
+    // Native browser notification if allowed
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(`⚠️ AirSense AQI Alert: ${stationName}`, {
+          body: `High particulate levels detected (${testAqi} AQI). Your sensitivity threshold is ${prefs.aqiThreshold}. Wear an N95 mask outdoors.`,
+          icon: '/manifest.json'
+        });
+      } catch (e) {
+        console.log('Native notification error:', e);
+      }
+    }
+
+    // Prepend to activity feed
+    const feed = document.getElementById('alerts-history-feed');
+    if (feed) {
+      const emptyNote = feed.querySelector('.empty-feed-note');
+      if (emptyNote) emptyNote.remove();
+
+      const item = document.createElement('div');
+      item.className = 'notification-item warning';
+      item.style.animation = 'fadeIn 0.3s ease-out';
+      item.innerHTML = `
+        <div class="notif-text-col">
+          <h4>⚠️ Simulated Breach Alert — ${stationName}</h4>
+          <p>Station recorded ${testAqi} AQI breaching your set threshold of ${prefs.aqiThreshold} AQI. Profile: <strong>${prefs.healthProfile}</strong>.</p>
+        </div>
+        <span class="notif-time">Just now</span>
+      `;
+      feed.insertBefore(item, feed.firstChild);
+    }
+  },
+
+  clearAlertHistory() {
+    const feed = document.getElementById('alerts-history-feed');
+    if (feed) {
+      feed.innerHTML = '<div class="empty-feed-note" style="text-align:center; padding:24px; color:#94a3b8; font-size:0.8rem;">No recent notification alerts logged. Tap "⚡ Test Alert" to simulate.</div>';
+      if (window.App && App.showToast) App.showToast('Alerts history log cleared.', 'info');
+    }
   },
 
   _onThresholdChange(val) {
     const numEl = document.getElementById('threshold-display-num');
     const labelEl = document.getElementById('threshold-display-label');
-    if (!numEl) return;
-    const n = parseInt(val);
-    const color = n <= 50 ? '#059669' : n <= 100 ? '#d97706' : n <= 150 ? '#ea580c' : '#dc2626';
+    const n = parseInt(val, 10);
+    const color = n <= 50 ? '#059669' : n <= 100 ? '#d97706' : n <= 150 ? '#ea580c' : n <= 200 ? '#dc2626' : '#7c3aed';
     const label = n <= 50 ? 'Good' : n <= 100 ? 'Moderate' : n <= 150 ? 'Sensitive' : n <= 200 ? 'Poor' : 'Hazardous';
-    numEl.textContent = n;
-    numEl.style.color = color;
-    if (labelEl) { labelEl.textContent = label; labelEl.style.color = color; }
+    if (numEl) {
+      numEl.textContent = n;
+      numEl.style.color = color;
+    }
+    if (labelEl) {
+      labelEl.textContent = label;
+      labelEl.style.color = color;
+    }
   },
 
   _toggleAlert(alertId) {
     const prefs = this.getPrefs();
+    if (!prefs.alerts) prefs.alerts = { morningForecast: true, thresholdBreach: true, travelAdvisory: true, weeklyReport: false };
     prefs.alerts[alertId] = !prefs.alerts[alertId];
     this.savePrefs(prefs);
-    // Update chip UI without full re-render
+    
+    // Update chip UI
     const chip = document.getElementById(`chip-${alertId}`);
-    if (chip) chip.classList.toggle('active', prefs.alerts[alertId]);
+    if (chip) chip.classList.toggle('active', !!prefs.alerts[alertId]);
     const toggle = document.getElementById(`toggle-daily-digest`);
-    if (alertId === 'morningForecast' && toggle) toggle.checked = prefs.alerts[alertId];
+    if (alertId === 'morningForecast' && toggle) toggle.checked = !!prefs.alerts[alertId];
     const routeToggle = document.getElementById('toggle-route-warn');
-    if (alertId === 'travelAdvisory' && routeToggle) routeToggle.checked = prefs.alerts[alertId];
+    if (alertId === 'travelAdvisory' && routeToggle) routeToggle.checked = !!prefs.alerts[alertId];
   },
 
   _selectProfile(profileId) {
     const prefs = this.getPrefs();
     prefs.healthProfile = profileId;
     this.savePrefs(prefs);
+
     // Sync with App state
-    if (window.App) App.state.selectedHealthProfile = profileId;
-    document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('selected'));
-    const card = document.getElementById(`profile-card-${profileId.replace(/[^a-z0-9]/gi, '-')}`);
+    if (window.App) {
+      App.state.selectedHealthProfile = profileId;
+    }
+
+    // Sync topbar select if present
+    const headerSelect = document.getElementById('header-health-profile-select');
+    if (headerSelect) headerSelect.value = profileId;
+
+    // Sync in-page select if present
+    const inPageSelect = document.getElementById('health-profile-select');
+    if (inPageSelect) inPageSelect.value = profileId;
+
+    // Update profile cards
+    document.querySelectorAll('#profile-cards-grid .profile-card').forEach(c => c.classList.remove('selected'));
+    const safeId = profileId.replace(/[^a-z0-9]/gi, '-');
+    const card = document.getElementById(`profile-card-${safeId}`);
     if (card) card.classList.add('selected');
+
+    if (window.App && App.showToast) {
+      App.showToast(`Health Profile set to: ${profileId}`, 'success');
+    }
   },
 
   _saveAll() {
     const slider = document.getElementById('notif-threshold-slider');
     const prefs = this.getPrefs();
-    if (slider) prefs.aqiThreshold = parseInt(slider.value);
+    if (slider) prefs.aqiThreshold = parseInt(slider.value, 10);
     this.savePrefs(prefs);
-    App.showToast('Notification preferences saved successfully!', 'success');
+    if (window.App && App.showToast) {
+      App.showToast('Notification preferences saved successfully!', 'success');
+    }
 
     // Dispatch threshold check for current selected station
     if (window.App && App.state.selectedStationKey && navigator.serviceWorker?.controller) {
@@ -2056,24 +2241,25 @@ const _originalSwitchTab = App.switchTab.bind(App);
 App.switchTab = function(tabId) {
   _originalSwitchTab(tabId);
 
+  // Always reset scroll to top so switching views never leaves the screen blank
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  const contentArea = document.querySelector('.content-area');
+  if (contentArea) contentArea.scrollTop = 0;
+
   // Update mobile bottom nav active state
   document.querySelectorAll('.mobile-nav-item').forEach(item => {
     item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
   });
 
-  // M3 specific tab rendering (React 18 components with fallback)
+  // M3 specific tab rendering
   if (tabId === 'module3') {
-    if (window.ReactMountManager) {
+    if (window.ReactMountManager && window.React && window.ReactDOM) {
       window.ReactMountManager.renderHistoryTab();
     } else {
       ExposureHistory.renderHistoryTab();
     }
   } else if (tabId === 'module3_prefs' || tabId === 'module3-prefs') {
-    if (window.ReactMountManager) {
-      window.ReactMountManager.renderPrefsTab();
-    } else {
-      NotificationPrefs.renderPrefsTab();
-    }
+    NotificationPrefs.renderPrefsTab();
   }
 
   // Update M3 titles
@@ -2128,6 +2314,7 @@ App._storeRouteResult = function(data, originCoords, destCoords) {
 window.addEventListener('DOMContentLoaded', () => {
   App.init();
   PWAManager.init();
+  NotificationPrefs.init();
   // Load saved health profile into App state
   const savedPrefs = NotificationPrefs.getPrefs();
   App.state.selectedHealthProfile = savedPrefs.healthProfile;
