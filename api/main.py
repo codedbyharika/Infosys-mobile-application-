@@ -115,7 +115,186 @@ class RetrainRequest(BaseModel):
     epochs: int = Field(12, ge=2, le=50, description="Number of training epochs")
 
 
+# ── Authentication Models ──────────────────────────────────────────────────
+class LoginRequest(BaseModel):
+    email: str = Field(..., description="User account email")
+    password: str = Field(..., description="User account password")
+    remember_me: Optional[bool] = Field(True, description="Persist session across reloads")
+
+class SignUpRequest(BaseModel):
+    name: str = Field(..., description="Full Name of the user")
+    email: str = Field(..., description="Email address")
+    password: str = Field(..., description="Password (min 6 characters)")
+    health_profile: str = Field("General User", description="Respiratory sensitivity profile")
+
+class DemoUserItem(BaseModel):
+    id: str
+    name: str
+    email: str
+    password: str
+    role: str
+    health_profile: str
+    initials: str
+    avatar_color: str
+    icon: str
+    tag: str
+    exposure_multiplier: float
+
+# Pre-seeded Demo Users (ready to use for testing & demonstration)
+DEMO_USERS: List[Dict[str, Any]] = [
+    {
+        "id": "usr-admin",
+        "name": "Harika K.",
+        "email": "admin@ecoair.gov.in",
+        "password": "admin123",
+        "role": "Administrator & Lead Air Quality Scientist",
+        "health_profile": "General User",
+        "initials": "HK",
+        "avatar_color": "#2563eb",
+        "icon": "🛡️",
+        "tag": "Admin • Full Access",
+        "exposure_multiplier": 1.0,
+        "is_admin": True,
+    },
+    {
+        "id": "usr-citizen",
+        "name": "Aarav Sharma",
+        "email": "citizen@ecoair.org",
+        "password": "demo123",
+        "role": "Smart Mobility Commuter",
+        "health_profile": "General User",
+        "initials": "AS",
+        "avatar_color": "#059669",
+        "icon": "🚴",
+        "tag": "Citizen • Standard Profile",
+        "exposure_multiplier": 1.0,
+        "is_admin": False,
+    },
+    {
+        "id": "usr-asthmatic",
+        "name": "Dr. Rohan Verma",
+        "email": "asthma.care@airsense.org",
+        "password": "health123",
+        "role": "Respiratory Sensitive Patient",
+        "health_profile": "Asthmatic / Respiratory",
+        "initials": "RV",
+        "avatar_color": "#ea580c",
+        "icon": "🫁",
+        "tag": "High Sensitivity • 1.4× Exposure",
+        "exposure_multiplier": 1.4,
+        "is_admin": False,
+    },
+    {
+        "id": "usr-senior",
+        "name": "Prof. S. N. Joshi",
+        "email": "senior.care@airsense.org",
+        "password": "elderly123",
+        "role": "Senior Citizen Commuter",
+        "health_profile": "Elderly (60+ Years)",
+        "initials": "SJ",
+        "avatar_color": "#7c3aed",
+        "icon": "👴",
+        "tag": "Elevated Vulnerability • 1.3×",
+        "exposure_multiplier": 1.3,
+        "is_admin": False,
+    },
+]
+
+# In-memory registry for newly registered users during runtime
+_registered_users: Dict[str, Dict[str, Any]] = {
+    u["email"].lower(): u for u in DEMO_USERS
+}
+
+
 # ── REST Endpoints ──────────────────────────────────────────────────────────
+@app.get("/api/auth/demo-users", tags=["Authentication"], response_model=List[DemoUserItem])
+def get_demo_users():
+    """Returns ready-to-use demo accounts for one-click authentication."""
+    return DEMO_USERS
+
+
+@app.post("/api/auth/login", tags=["Authentication"])
+def login(req: LoginRequest):
+    """Authenticates a user via email and password."""
+    email_clean = req.email.strip().lower()
+    user = _registered_users.get(email_clean)
+    if not user or user["password"] != req.password.strip():
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password. Please use demo credentials or register."
+        )
+
+    # Return profile with session token
+    return {
+        "success": True,
+        "token": f"token_{user['id']}_{int(time.time())}",
+        "user": {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "role": user["role"],
+            "health_profile": user.get("health_profile", "General User"),
+            "initials": user.get("initials", user["name"][:2].upper()),
+            "avatar_color": user.get("avatar_color", "#2563eb"),
+            "is_admin": user.get("is_admin", False),
+            "exposure_multiplier": user.get("exposure_multiplier", 1.0)
+        }
+    }
+
+
+@app.post("/api/auth/signup", tags=["Authentication"])
+def signup(req: SignUpRequest):
+    """Registers a new user and grants instant session access."""
+    email_clean = req.email.strip().lower()
+    if len(req.password.strip()) < 4:
+        raise HTTPException(status_code=400, detail="Password must be at least 4 characters long.")
+
+    # Initials
+    name_parts = req.name.strip().split()
+    initials = "".join([p[0].upper() for p in name_parts[:2]]) if name_parts else "US"
+
+    multipliers = {
+        "General User": 1.0,
+        "Asthmatic / Respiratory": 1.4,
+        "Elderly (60+ Years)": 1.3,
+        "Child (Under 12 Years)": 1.2
+    }
+
+    new_user = {
+        "id": f"usr-{int(time.time())}",
+        "name": req.name.strip(),
+        "email": email_clean,
+        "password": req.password.strip(),
+        "role": f"Registered User ({req.health_profile})",
+        "health_profile": req.health_profile,
+        "initials": initials,
+        "avatar_color": "#0891b2",
+        "icon": "👤",
+        "tag": "Registered Citizen",
+        "exposure_multiplier": multipliers.get(req.health_profile, 1.0),
+        "is_admin": False
+    }
+
+    _registered_users[email_clean] = new_user
+
+    return {
+        "success": True,
+        "message": "User registered successfully.",
+        "token": f"token_{new_user['id']}_{int(time.time())}",
+        "user": {
+            "id": new_user["id"],
+            "name": new_user["name"],
+            "email": new_user["email"],
+            "role": new_user["role"],
+            "health_profile": new_user["health_profile"],
+            "initials": new_user["initials"],
+            "avatar_color": new_user["avatar_color"],
+            "is_admin": False,
+            "exposure_multiplier": new_user["exposure_multiplier"]
+        }
+    }
+
+
 @app.get("/health", tags=["System"])
 @app.get("/api/health", tags=["System"])
 def health_check():

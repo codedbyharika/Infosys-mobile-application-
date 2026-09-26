@@ -18,6 +18,7 @@ sys.path.insert(0, BASE_DIR)
 from tests.test_ml_engine import TestMLEngine
 from tests.test_api_endpoints import TestAPIEndpoints
 from tests.test_frontend_integrity import TestFrontendIntegrity
+from tests.test_mobile_layout import TestMobileLayoutIntegrity
 
 
 def run_full_suite():
@@ -35,6 +36,7 @@ def run_full_suite():
         ("1. ML & Geostatistical Engines Suite", loader.loadTestsFromTestCase(TestMLEngine)),
         ("2. REST API Microservice Suite", loader.loadTestsFromTestCase(TestAPIEndpoints)),
         ("3. Frontend Integrity & Design System Suite", loader.loadTestsFromTestCase(TestFrontendIntegrity)),
+        ("4. Mobile Layout & Responsive PWA Suite", loader.loadTestsFromTestCase(TestMobileLayoutIntegrity)),
     ]
 
     total_tests = 0

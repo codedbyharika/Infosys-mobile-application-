@@ -56,6 +56,7 @@ class TestFrontendIntegrity(unittest.TestCase):
             "pwa-online-status",
             "notif-threshold-slider",
             "tab-module3-prefs",
+            "profile-card-general",
         }
 
         missing_ids = []

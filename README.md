@@ -320,6 +320,19 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 - **Interactive OpenAPI Swagger Docs:** Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 - **ReDoc API Documentation:** Open [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc).
 
+### 5. Authentication & Ready-to-Use Demo Credentials
+When opening the dashboard, a login interface is displayed with a **"Ready-to-Use Demo Credentials"** panel right under the Sign In / Sign Up form. Simply click any pill to automatically populate the credentials:
+
+| Persona | Role | Email | Password | Sensitivity Multiplier |
+| :--- | :--- | :--- | :--- | :--- |
+| **Harika K.** | Administrator & Lead Scientist | `admin@ecoair.gov.in` | `admin123` | 1.0× (Admin • Full Access) |
+| **Aarav Sharma** | Smart Mobility Commuter | `citizen@ecoair.org` | `demo123` | 1.0× (Citizen Profile) |
+| **Dr. Rohan Verma** | Respiratory Sensitive Patient | `asthma.care@airsense.org` | `health123` | 1.4× (High Sensitivity) |
+| **Prof. S. N. Joshi** | Senior Citizen Commuter | `senior.care@airsense.org` | `elderly123` | 1.3× (Elevated Vulnerability) |
+
+- **New User Sign Up:** Click the "Sign Up" tab to create custom accounts with automatic health sensitivity assignment.
+- **Sign Out:** When logged in, click the **"Sign Out"** button located both in the **sidebar footer** and the **top navigation bar** to terminate your session and return to the login screen.
+
 ---
 
 ## 📊 Evaluation & Mathematical Formulation

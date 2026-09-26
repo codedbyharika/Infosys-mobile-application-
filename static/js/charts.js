@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EcoAir Intelligence — Chart.js Visualization Engine
  * High-performance canvas charting for historical trends,
  * multi-step neural forecast trajectories with 95% confidence bounds,
@@ -7,6 +7,18 @@
 
 const ChartEngine = {
   instances: {},
+
+  isMobile() {
+    return window.innerWidth <= 768 || document.body.classList.contains('mobile-preview-active');
+  },
+
+  resizeAll() {
+    Object.values(this.instances).forEach(inst => {
+      if (inst && typeof inst.resize === 'function') {
+        inst.resize();
+      }
+    });
+  },
 
   _destroyExisting(canvasId) {
     if (this.instances[canvasId]) {
@@ -29,6 +41,7 @@ const ChartEngine = {
     });
     const aqiData = records.map(r => r.aqi);
     const pm25Data = records.map(r => r.pm25);
+    const mobile = this.isMobile();
 
     this.instances[canvasId] = new Chart(ctx, {
       type: 'line',
@@ -42,9 +55,9 @@ const ChartEngine = {
             backgroundColor: 'rgba(245, 158, 11, 0.08)',
             fill: true,
             tension: 0.35,
-            borderWidth: 2.5,
-            pointRadius: 2.5,
-            pointHoverRadius: 6
+            borderWidth: mobile ? 2 : 2.5,
+            pointRadius: mobile ? 1.5 : 2.5,
+            pointHoverRadius: 5
           },
           {
             label: 'PM2.5 (µg/m³)',
@@ -52,7 +65,7 @@ const ChartEngine = {
             borderColor: '#38bdf8',
             backgroundColor: 'transparent',
             borderDash: [4, 4],
-            borderWidth: 1.8,
+            borderWidth: mobile ? 1.4 : 1.8,
             pointRadius: 0
           }
         ]
@@ -61,26 +74,46 @@ const ChartEngine = {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
+        layout: {
+          padding: { left: mobile ? 2 : 8, right: mobile ? 6 : 14, top: 4, bottom: 4 }
+        },
         plugins: {
           legend: {
-            labels: { color: '#0f172a', font: { family: 'Inter', size: 11 } }
+            position: 'top',
+            labels: {
+              color: '#0f172a',
+              boxWidth: mobile ? 10 : 14,
+              padding: mobile ? 8 : 12,
+              font: { family: 'Inter', size: mobile ? 10 : 11 }
+            }
           },
           tooltip: {
             backgroundColor: '#0f172a',
             titleColor: '#f8fafc',
             bodyColor: '#ffffff',
             borderColor: 'rgba(255, 255, 255, 0.1)',
-            borderWidth: 1
+            borderWidth: 1,
+            padding: mobile ? 8 : 10
           }
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-            ticks: { color: '#0f172a', font: { family: 'Inter', size: 10 } }
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: {
+              color: '#0f172a',
+              font: { family: 'Inter', size: mobile ? 8.5 : 10 },
+              maxTicksLimit: mobile ? 6 : 12,
+              maxRotation: 0,
+              autoSkip: true
+            }
           },
           y: {
-            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-            ticks: { color: '#0f172a', font: { family: 'Inter', size: 10 } }
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: {
+              color: '#0f172a',
+              font: { family: 'Inter', size: mobile ? 8.5 : 10 },
+              maxTicksLimit: mobile ? 5 : 8
+            }
           }
         }
       }
@@ -176,6 +209,8 @@ const ChartEngine = {
     const currentAQI = parseFloat(forecast.current_aqi) || null;
     const currentLine = new Array(totalLen).fill(currentAQI);
 
+    const mobile = this.isMobile();
+
     this.instances[canvasId] = new Chart(ctx, {
       type: 'line',
       data: {
@@ -210,12 +245,12 @@ const ChartEngine = {
             borderColor: '#6366f1',
             backgroundColor: 'rgba(99, 102, 241, 0.08)',
             fill: false,
-            borderWidth: 2.5,
-            pointRadius: (ctx) => ctx.dataIndex === nowIdx ? 0 : 3,
+            borderWidth: mobile ? 2 : 2.5,
+            pointRadius: (ctx) => ctx.dataIndex === nowIdx ? 0 : (mobile ? 1.5 : 3),
             pointBackgroundColor: '#6366f1',
             pointBorderColor: '#0a0e17',
             pointBorderWidth: 1.5,
-            pointHoverRadius: 6,
+            pointHoverRadius: 5,
             tension: 0.35,
             spanGaps: true
           },
@@ -226,13 +261,13 @@ const ChartEngine = {
             borderColor: '#2dd4bf',
             backgroundColor: 'rgba(45, 212, 191, 0.12)',
             fill: false,
-            borderWidth: 3,
+            borderWidth: mobile ? 2.4 : 3,
             borderDash: [],
-            pointRadius: (ctx) => ctx.dataIndex === nowIdx ? 0 : 3.5,
+            pointRadius: (ctx) => ctx.dataIndex === nowIdx ? 0 : (mobile ? 2 : 3.5),
             pointBackgroundColor: '#2dd4bf',
             pointBorderColor: '#0a0e17',
             pointBorderWidth: 1.5,
-            pointHoverRadius: 7,
+            pointHoverRadius: 6,
             tension: 0.35,
             spanGaps: false
           },
@@ -254,14 +289,18 @@ const ChartEngine = {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
+        layout: {
+          padding: { left: mobile ? 2 : 6, right: mobile ? 6 : 14, top: 4, bottom: 4 }
+        },
         plugins: {
           legend: {
+            position: 'top',
             labels: {
               filter: item => !['Upper 95% CI', 'Lower 95% CI'].includes(item.text),
               color: '#1e293b',
-              font: { family: 'Inter', size: 11 },
-              boxWidth: 14,
-              padding: 12
+              font: { family: 'Inter', size: mobile ? 9.5 : 11 },
+              boxWidth: mobile ? 10 : 14,
+              padding: mobile ? 6 : 12
             }
           },
           tooltip: {
@@ -270,6 +309,7 @@ const ChartEngine = {
             bodyColor: '#ffffff',
             borderColor: 'rgba(56, 189, 248, 0.3)',
             borderWidth: 1,
+            padding: mobile ? 8 : 10,
             callbacks: {
               label: function(context) {
                 if (context.parsed.y === null) return null;
@@ -281,26 +321,26 @@ const ChartEngine = {
               }
             }
           },
-          // Vertical "NOW" line annotation via afterDraw plugin
           annotation: undefined
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.04)' },
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
             ticks: {
-              color: (ctx) => ctx.tick?.label === '▼ NOW' ? '#fbbf24' : '#1e293b',
+              color: (ctx) => ctx.tick?.label === '▼ NOW' ? '#d97706' : '#1e293b',
               font: (ctx) => ctx.tick?.label === '▼ NOW'
-                ? { family: 'Inter', size: 10, weight: '700' }
-                : { family: 'Inter', size: 9 },
+                ? { family: 'Inter', size: mobile ? 9 : 10, weight: '700' }
+                : { family: 'Inter', size: mobile ? 8 : 9 },
               maxRotation: 0,
-              maxTicksLimit: 16
+              maxTicksLimit: mobile ? 6 : 14,
+              autoSkip: true
             }
           },
           y: {
-            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-            ticks: { color: '#0f172a', font: { family: 'Inter', size: 10 } },
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: { color: '#0f172a', font: { family: 'Inter', size: mobile ? 8.5 : 10 }, maxTicksLimit: 5 },
             title: {
-              display: true,
+              display: !mobile,
               text: 'AQI',
               color: '#1e293b',
               font: { family: 'Inter', size: 10 }
@@ -321,17 +361,17 @@ const ChartEngine = {
           ctx.save();
           ctx.beginPath();
           ctx.setLineDash([6, 4]);
-          ctx.strokeStyle = 'rgba(251, 191, 36, 0.75)';
+          ctx.strokeStyle = 'rgba(217, 119, 6, 0.85)';
           ctx.lineWidth = 2;
           ctx.moveTo(nowPx, chartArea.top);
           ctx.lineTo(nowPx, chartArea.bottom);
           ctx.stroke();
           // Label
           ctx.setLineDash([]);
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.90)';
-          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.fillStyle = '#b45309';
+          ctx.font = 'bold 9px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText('NOW', nowPx, chartArea.top + 12);
+          ctx.fillText('NOW', nowPx, chartArea.top + 11);
           ctx.restore();
         }
       }]
@@ -348,6 +388,7 @@ const ChartEngine = {
 
     const len = (breakdown.pm25 || []).length;
     const labels = Array.from({ length: len }, (_, i) => `+${i + 1}h`);
+    const mobile = this.isMobile();
 
     this.instances[canvasId] = new Chart(ctx, {
       type: 'line',
@@ -359,40 +400,67 @@ const ChartEngine = {
             data: breakdown.pm25 || [],
             borderColor: '#f43f5e',
             backgroundColor: 'transparent',
-            borderWidth: 2,
+            borderWidth: mobile ? 1.6 : 2,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: mobile ? 1 : 2
           },
           {
             label: 'PM10 (µg/m³)',
             data: breakdown.pm10 || [],
             borderColor: '#fb923c',
             backgroundColor: 'transparent',
-            borderWidth: 2,
+            borderWidth: mobile ? 1.6 : 2,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: mobile ? 1 : 2
           },
           {
             label: 'NO2 (µg/m³)',
             data: breakdown.no2 || [],
             borderColor: '#a855f7',
             backgroundColor: 'transparent',
-            borderWidth: 2,
+            borderWidth: mobile ? 1.6 : 2,
             tension: 0.3,
-            pointRadius: 2
+            pointRadius: mobile ? 1 : 2
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { left: mobile ? 2 : 6, right: mobile ? 6 : 14, top: 2, bottom: 2 }
+        },
         plugins: {
-          legend: { labels: { color: '#0f172a', font: { family: 'Inter', size: 11 } } },
-          tooltip: { backgroundColor: '#0f172a', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#0f172a',
+              boxWidth: mobile ? 10 : 14,
+              padding: mobile ? 6 : 12,
+              font: { family: 'Inter', size: mobile ? 9.5 : 11 }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: mobile ? 8 : 10
+          }
         },
         scales: {
-          x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#0f172a' } },
-          y: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#0f172a' } }
+          x: {
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: {
+              color: '#0f172a',
+              font: { family: 'Inter', size: mobile ? 8.5 : 10 },
+              maxTicksLimit: mobile ? 6 : 12,
+              autoSkip: true
+            }
+          },
+          y: {
+            grid: { color: 'rgba(0, 0, 0, 0.04)' },
+            ticks: { color: '#0f172a', font: { family: 'Inter', size: mobile ? 8.5 : 10 }, maxTicksLimit: 5 }
+          }
         }
       }
     });
@@ -447,10 +515,10 @@ const ChartEngine = {
       // Format clean station name
       let cleanName = item.station_name || item.name || 'Station';
       cleanName = cleanName.replace(/_\d+$/, '')
-        .replace(/Square/g, ' Square')
-        .replace(/Bus_stand/g, 'Bus Stand')
-        .replace(/Station/g, ' Station')
-        .replace(/Road/g, ' Road')
+        .replace(/Square/g, ' Sq')
+        .replace(/Bus_stand/g, 'Bus Stn')
+        .replace(/Station/g, ' Stn')
+        .replace(/Road/g, ' Rd')
         .replace(/Gadital/g, ' Gadital')
         .replace(/_/g, ' ')
         .replace(/\s+/g, ' ')
@@ -466,6 +534,8 @@ const ChartEngine = {
       };
     }).sort((a, b) => b.val - a.val);
 
+    const mobile = this.isMobile();
+
     this.instances[canvasId] = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -476,7 +546,7 @@ const ChartEngine = {
           backgroundColor: list.map(item => item.color),
           borderRadius: 4,
           borderWidth: 0,
-          barThickness: 16
+          barThickness: mobile ? 11 : 16
         }]
       },
       options: {
@@ -484,7 +554,7 @@ const ChartEngine = {
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { left: 4, right: 16, top: 4, bottom: 4 }
+          padding: { left: 2, right: mobile ? 8 : 16, top: 2, bottom: 2 }
         },
         plugins: {
           legend: { display: false },
@@ -492,9 +562,9 @@ const ChartEngine = {
             backgroundColor: '#0f172a',
             titleColor: '#ffffff',
             bodyColor: '#ffffff',
-            titleFont: { family: 'Inter', size: 12, weight: '700' },
-            bodyFont: { family: 'Inter', size: 11 },
-            padding: 10,
+            titleFont: { family: 'Inter', size: mobile ? 11 : 12, weight: '700' },
+            bodyFont: { family: 'Inter', size: mobile ? 10 : 11 },
+            padding: mobile ? 8 : 10,
             cornerRadius: 6,
             callbacks: {
               label: (context) => {
@@ -516,14 +586,15 @@ const ChartEngine = {
             },
             ticks: {
               color: '#1e293b',
-              font: { family: 'Inter', size: 10 }
+              font: { family: 'Inter', size: mobile ? 8.5 : 10 },
+              maxTicksLimit: 5
             }
           },
           y: {
             grid: { display: false, drawBorder: false },
             ticks: {
               color: '#1e293b',
-              font: { family: 'Inter', size: 11, weight: '600' }
+              font: { family: 'Inter', size: mobile ? 9 : 11, weight: '600' }
             }
           }
         }
