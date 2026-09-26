@@ -239,6 +239,18 @@ const App = {
         this.runInterpolation();
       });
     }
+  toggleSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.toggle('mobile-open');
+    if (backdrop) backdrop.classList.toggle('active');
+  },
+
+  closeSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.remove('active');
   },
 
   /**
@@ -249,13 +261,24 @@ const App = {
 
     // Update sidebar navigation active state
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
+      const itemTab = item.getAttribute('data-tab');
+      item.classList.toggle('active', itemTab === tabId || 
+        itemTab === tabId.replace(/_/g, '-') || 
+        itemTab === tabId.replace(/-/g, '_'));
     });
 
-    // Toggle tab content containers
+    // Toggle tab content containers (handles both underscore and hyphen aliases)
     document.querySelectorAll('.tab-content').forEach(container => {
-      container.classList.toggle('active', container.id === `tab-${tabId}`);
+      const match = container.id === `tab-${tabId}` || 
+                    container.id === `tab-${tabId.replace(/_/g, '-')}` || 
+                    container.id === `tab-${tabId.replace(/-/g, '_')}` ||
+                    container.getAttribute('data-alias') === `tab-${tabId}` ||
+                    container.getAttribute('data-alias') === `tab-${tabId.replace(/_/g, '-')}`;
+      container.classList.toggle('active', match);
     });
+
+    // Auto-close mobile sidebar drawer upon selecting a view
+    this.closeSidebar();
 
     // Update Header title
     const titleEl = document.getElementById('current-module-title');
@@ -1628,7 +1651,7 @@ const NotificationPrefs = {
   },
 
   renderPrefsTab() {
-    const container = document.getElementById('tab-module3-prefs');
+    const container = document.getElementById('tab-module3_prefs') || document.getElementById('tab-module3-prefs');
     if (!container) return;
 
     const prefs = this.getPrefs();
@@ -2045,7 +2068,7 @@ App.switchTab = function(tabId) {
     } else {
       ExposureHistory.renderHistoryTab();
     }
-  } else if (tabId === 'module3_prefs') {
+  } else if (tabId === 'module3_prefs' || tabId === 'module3-prefs') {
     if (window.ReactMountManager) {
       window.ReactMountManager.renderPrefsTab();
     } else {
@@ -2056,7 +2079,8 @@ App.switchTab = function(tabId) {
   // Update M3 titles
   const extraTitles = {
     'module3': 'Personal Exposure History — Trip AQI Log',
-    'module3_prefs': 'Notification Preference Management — PWA Alerts'
+    'module3_prefs': 'Notification Preference Management — PWA Alerts',
+    'module3-prefs': 'Notification Preference Management — PWA Alerts'
   };
   const titleEl = document.getElementById('current-module-title');
   if (titleEl && extraTitles[tabId]) {

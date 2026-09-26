@@ -620,7 +620,7 @@
     },
 
     renderPrefsTab() {
-      const container = document.getElementById('tab-module3-prefs');
+      const container = document.getElementById('tab-module3_prefs') || document.getElementById('tab-module3-prefs');
       if (!container || !window.ReactDOM || !window.React) return;
       if (!this.prefsRoot) {
         this.prefsRoot = ReactDOM.createRoot(container);

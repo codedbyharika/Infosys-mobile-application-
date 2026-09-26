@@ -42,8 +42,21 @@ class TestFrontendIntegrity(unittest.TestCase):
         # Extract all id="..." attributes in index.html
         html_ids = set(re.findall(r'id=["\']([^"\']+)["\']', self.html_content))
 
-        # Known dynamic or guarded container IDs
-        allowed_missing = {"toast-container", "city-map", "overview-station-grid", "header-health-pill-text"}
+        # Known dynamic or guarded container IDs (including React 18 Milestone 3 rendered components)
+        allowed_missing = {
+            "toast-container",
+            "city-map",
+            "overview-station-grid",
+            "header-health-pill-text",
+            "threshold-display-label",
+            "threshold-display-num",
+            "toggle-route-warn",
+            "btn-save-to-history",
+            "pwa-status-text",
+            "pwa-online-status",
+            "notif-threshold-slider",
+            "tab-module3-prefs",
+        }
 
         missing_ids = []
         for dom_id in queried_ids:

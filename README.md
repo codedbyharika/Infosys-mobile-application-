@@ -1,12 +1,13 @@
 # EcoAir Intelligence (AirSense) — AI Environmental Platform & Smart Mobility System
 
+[![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-02569B.svg?style=flat&logo=flutter)](https://flutter.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-2.0.0-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?style=flat&logo=python)](https://www.python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-LSTM%20%2F%20GRU-EE4C2C.svg?style=flat&logo=pytorch)](https://pytorch.org)
 [![CPCB Standard](https://img.shields.io/badge/Air%20Quality%20Standard-CPCB%20NAAQI-16A34A.svg?style=flat)](https://cpcb.nic.in)
 [![QA Test Suite](https://img.shields.io/badge/QA%20Tests-24%2F24%20PASS%20(100%25)-success.svg?style=flat)]()
 
-**EcoAir Intelligence** (AirSense) is a full-stack, enterprise-grade environmental intelligence and predictive smart-mobility platform. Built using **FastAPI (ASGI microservice)**, a **Modern Responsive Single Page Web Application (SPA)**, and **Deep Recurrent Neural Networks (PyTorch LSTM/GRU with pure-NumPy runtime fallback)**, the platform ingests multi-station urban sensor telemetry, performs geostatistical spatial interpolation, projects multi-step ahead air quality trajectories, and optimizes travel routes to minimize human particulate inhalation.
+**EcoAir Intelligence** (AirSense) is a full-stack, enterprise-grade environmental intelligence and predictive smart-mobility platform. Built using **FastAPI (ASGI microservice)**, a native **Flutter Cross-Platform Mobile Application (`mobile_app/`)**, and **Deep Recurrent Neural Networks (PyTorch LSTM/GRU with pure-NumPy runtime fallback)**, the platform ingests multi-station urban sensor telemetry, performs geostatistical spatial interpolation, projects multi-step ahead air quality trajectories, and optimizes travel routes to minimize human particulate inhalation.
 
 ---
 
@@ -150,6 +151,17 @@ aqi-infosys/
 │   ├── pune_preprocessing_summary.json # Feature statistics and outlier metadata
 │   ├── custom_dataset.py               # CPCB sub-index calculations & station aggregator
 │   └── custom_dataset.py               # Pune dataset ingestion, health profiles, and CPCB tables
+├── mobile_app/                         # Flutter Cross-Platform Mobile Application (Android / iOS / Web)
+│   ├── pubspec.yaml                    # Flutter dependencies (http, fl_chart, shared_preferences, intl)
+│   ├── README.md                       # Mobile app architecture & emulator setup instructions
+│   └── lib/
+│       ├── main.dart                   # Mobile app entrypoint & AppState binder
+│       ├── config/                     # CPCB 6-tier theme, colors & dynamic API endpoint config
+│       ├── models/                     # Station, Forecast, RouteExposure, TripRecord, KPISummary
+│       ├── providers/                  # Central reactive AppState ChangeNotifier
+│       ├── services/                   # ApiService, StorageService (SharedPreferences), OfflineDataService
+│       ├── widgets/                    # AqiGauge, PollutantCard, StationBottomSheet, BreachAlertDialog
+│       └── screens/                    # Dashboard, GIS Map, Route Advisory, History, Forecast, Settings
 │
 ├── static/
 │   ├── index.html                      # Modern Responsive Single Page Application (SPA)
